@@ -7,7 +7,7 @@ use std::{
     process,
 };
 
-use Rulox::scanner;
+use rulox::scanner;
 
 fn main() {
     env_logger::init();
