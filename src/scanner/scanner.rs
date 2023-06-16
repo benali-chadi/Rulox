@@ -1,9 +1,7 @@
 use crate::error_reporintg;
 
-use super::{
-    keywords::TokenKeywords,
-    token::{Token, TokenType},
-};
+use super::keywords::TokenKeywords;
+use super::token::{Token, TokenType};
 
 pub struct Scanner {
     source: String,
@@ -131,7 +129,7 @@ impl Scanner {
                 if c.is_digit(10) {
                     self.number();
                 } else if Scanner::is_alpha(c) {
-                    self.identifier();
+                    self.identifier_or_keyword();
                 } else {
                     error_reporintg::error(self.line, "Unexpected character.")
                 }
@@ -139,7 +137,7 @@ impl Scanner {
         }
     }
 
-    fn identifier(&mut self) {
+    fn identifier_or_keyword(&mut self) {
         let keywords = TokenKeywords::new();
 
         while Scanner::is_alpha_numeric(self.peek()) {
