@@ -1,0 +1,36 @@
+use std::fmt::Display;
+
+use crate::scanner::token::{Token, TokenType};
+
+use super::ExprTrait;
+
+pub struct Literal {
+    value: Token,
+}
+
+impl Literal {
+    pub fn new(value: Token) -> Self {
+        let value = match value.token_type {
+            TokenType::Number(_) => value,
+            TokenType::String(_) => value,
+            _ => Token::new(TokenType::Nil, "nil".to_string(), value.line),
+        };
+        Self { value }
+    }
+}
+
+impl Display for Literal {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match &self.value.token_type {
+            TokenType::Number(val) => write!(f, "{}", val),
+            TokenType::String(val) => write!(f, "\"{}\"", val),
+            _ => write!(f, "nil"),
+        }
+    }
+}
+
+impl ExprTrait for Literal {
+    fn evaluate(&self) -> bool {
+        true
+    }
+}

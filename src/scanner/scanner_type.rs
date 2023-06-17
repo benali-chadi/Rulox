@@ -39,7 +39,7 @@ impl Scanner {
     }
 
     pub fn is_alpha_numeric(c: char) -> bool {
-        Scanner::is_alpha(c) || c.is_digit(10)
+        Scanner::is_alpha(c) || c.is_ascii_digit()
     }
 
     fn scan_token(&mut self) {
@@ -126,7 +126,7 @@ impl Scanner {
             '"' => self.string(),
 
             _ => {
-                if c.is_digit(10) {
+                if c.is_ascii_digit() {
                     self.number();
                 } else if Scanner::is_alpha(c) {
                     self.identifier_or_keyword();
@@ -149,14 +149,14 @@ impl Scanner {
     }
 
     fn number(&mut self) {
-        while self.peek().is_digit(10) {
+        while self.peek().is_ascii_digit() {
             self.advance();
         }
 
-        if self.peek() == '.' && self.peek_next().is_digit(10) {
+        if self.peek() == '.' && self.peek_next().is_ascii_digit() {
             self.advance();
 
-            while self.peek().is_digit(10) {
+            while self.peek().is_ascii_digit() {
                 self.advance();
             }
         }
@@ -222,7 +222,7 @@ impl Scanner {
     }
 
     fn is_at_end(&self) -> bool {
-        return self.current >= self.source.len();
+        self.current >= self.source.len()
     }
 
     fn advance(&mut self) -> char {
