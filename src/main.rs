@@ -2,18 +2,12 @@
 extern crate log;
 
 use std::{
-    env,
-    fmt::Binary,
-    fs,
+    env, fs,
     io::{self, Write},
     process,
 };
 
-use rulox::{
-    expression::{self, Expr, Grouping, Literal, Unary},
-    scanner,
-    scanner::token::*,
-};
+use rulox::{scanner, utils::sample_tree};
 
 fn main() {
     env_logger::init();
@@ -32,22 +26,7 @@ fn main() {
         }
     }
 
-    // let expression = expression::Binary::new(
-    //     Expr::new(Box::new(Unary::new(
-    //         Token::new(TokenType::Minus, "-".to_string(), 1),
-    //         Expr::new(Box::new(Literal::new(Token::new(
-    //             TokenType::Number(127.0),
-    //             "127.0".to_string(),
-    //             1,
-    //         )))),
-    //     ))),
-    //     Token::new(TokenType::Star, "*".to_string(), 1),
-    //     Expr::new(Box::new(Grouping::new(Expr::new(Box::new(Literal::new(
-    //         Token::new(TokenType::Number(45.5), "45.5".to_string(), 1),
-    //     )))))),
-    // );
-    //
-    // println!("{:?}", format!("{expression}"));
+    // sample_tree();
 }
 
 fn run_file(filename: String) {
