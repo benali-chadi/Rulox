@@ -28,6 +28,6 @@ impl Display for Token {
             TokenType::Number(val) => val.to_string(),
             _ => "".to_string(),
         };
-        write!(f, "{:?} {} {}", self.token_type, self.lexeme, literal)
+        write!(f, "[{:?} '{}' '{}']", self.token_type, self.lexeme, literal)
     }
 }

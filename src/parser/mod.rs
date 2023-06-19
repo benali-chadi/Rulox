@@ -10,8 +10,11 @@ pub struct Parser {
 }
 
 impl Parser {
-    pub fn new(tokens: Vec<Token>) -> Self {
-        Self { tokens, current: 0 }
+    pub fn new(tokens: &[Token]) -> Self {
+        Self {
+            tokens: tokens.to_vec(),
+            current: 0,
+        }
     }
 
     pub fn parse(&mut self) -> Result<Expr, MyError> {

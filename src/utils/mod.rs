@@ -1,37 +1,46 @@
-use crate::{
-    expression::{self, Expr, Grouping, Literal, Unary},
-    scanner::token::{Token, TokenType},
+use std::{
+    fs,
+    io::{self, Write},
 };
+
+use crate::{error_reporintg::Report, expression::Expr, rulox::Rulox};
+
+pub fn run_file(filename: String) {
+    let content = fs::read_to_string(filename).unwrap();
+    let rulox = Rulox::from(content);
+
+    match rulox.run() {
+        Ok(_) => {}
+        Err(err) => {
+            err.report();
+        }
+    }
+}
+
+pub fn run_prompt() -> io::Result<()> {
+    let rulox = Rulox::new();
+    loop {
+        print!("rulox> ");
+        io::stdout().flush()?;
+        let mut input = String::new();
+
+        let bytes = io::stdin().read_line(&mut input)?;
+
+        if bytes == 0 || input.trim() == "quit" {
+            break;
+        }
+
+        match rulox.prompt_run(input) {
+            Ok(_) => {}
+            Err(err) => {
+                err.report();
+            }
+        }
+    }
+
+    Ok(())
+}
 
 pub fn print_tree(expression: &Expr) {
     println!("{}", expression);
-}
-
-pub fn sample_tree() {
-    let expression = expression::Binary::new(
-        Expr::new(Box::new(Unary::new(
-            Token::new(TokenType::Minus, "-".to_string(), 1),
-            Expr::new(Box::new(Literal::new(Token::new(
-                TokenType::Number(127.0),
-                "127.0".to_string(),
-                1,
-            )))),
-        ))),
-        Token::new(TokenType::Star, "*".to_string(), 1),
-        // Expr::new(Box::new(Grouping::new(Expr::new(Box::new(Literal::new(
-        //     Token::new(TokenType::Number(45.5), "45.5".to_string(), 1),
-        // )))))),
-        Expr::new(Box::new(Grouping::new(Expr::new(Box::new(Unary::new(
-            Token::new(TokenType::Minus, "-".to_string(), 1),
-            Expr::new(Box::new(Literal::new(Token::new(
-                TokenType::Number(42.0),
-                "42.0".to_string(),
-                1,
-            )))),
-        )))))),
-    );
-
-    let expr = Expr::new(Box::new(expression));
-
-    print_tree(&expr);
 }
