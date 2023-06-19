@@ -20,7 +20,18 @@ impl Parser {
     }
 
     pub fn parse(&mut self) -> Result<Expr, MyError> {
-        self.expression()
+        // self.expression()
+        self.comma()
+    }
+
+    fn comma(&mut self) -> Result<Expr, MyError> {
+        let mut expr = self.expression()?;
+
+        while self.matches(&[TokenType::Comma]) {
+            expr = self.expression()?;
+        }
+
+        Ok(expr)
     }
 
     fn expression(&mut self) -> Result<Expr, MyError> {
