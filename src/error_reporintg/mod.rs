@@ -1,27 +1,81 @@
-use log::{error, info, warn};
+use crate::scanner::token::{Token, TokenType};
+use colored::*;
 
-pub fn error(line: usize, message: &str) {
+pub trait Report {
+    fn report(&self);
+}
+
+pub enum MyError {
+    ParseError {
+        token: Option<Token>,
+        line: usize,
+        message: String,
+    },
+    SyntaxError {
+        token: Option<Token>,
+        line: usize,
+        message: String,
+    },
+}
+
+impl Report for MyError {
+    fn report(&self) {
+        match self {
+            MyError::ParseError {
+                token,
+                line,
+                message,
+            } => {
+                if let Some(token) = token {
+                    match token.token_type {
+                        TokenType::Eof => {
+                            let msg = "at end: ".to_string() + &message;
+                            error(*line, msg);
+                        }
+                        _ => {
+                            let msg = "at '".to_string() + &token.lexeme + "'" + &message;
+                            error(*line, msg);
+                        }
+                    }
+                }
+            }
+            MyError::SyntaxError { line, message, .. } => error(*line, message.to_string()),
+        }
+    }
+}
+
+fn error(line: usize, message: String) {
     report(line, message, 0);
 }
 
-pub fn warn(line: usize, message: &str) {
-    report(line, message, 1);
-}
+// fn warn(line: usize, message: String) {
+//     report(line, message, 1);
+// }
+//
+// fn info(message: String) {
+//     report(0, message, 2);
+// }
 
-pub fn info(message: &str) {
-    report(0, message, 2);
-}
-
-pub fn report(line: usize, message: &str, level: i32) {
+fn report(line: usize, message: String, level: i32) {
     if level == 0 {
-        error!("[line {}] Error: {}", line, message);
+        eprintln!(
+            "[line {}] {}: {}",
+            line.to_string().bold(),
+            "Error".red().bold(),
+            message.bold()
+        );
     }
 
     if level == 1 {
-        warn!("[line {}] Warning: {}", line, message);
+        eprintln!(
+            "[line {}] {}: {}",
+            line.to_string().bold(),
+            "Warning".yellow().bold(),
+            message.bold()
+        );
     }
 
     if level == 2 {
-        info!("Info: {}", message);
+        eprintln!("{}: {}", "Info".green().bold(), message.bold());
     }
 }

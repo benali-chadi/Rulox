@@ -8,11 +8,14 @@ pub struct Literal {
     value: Token,
 }
 
+// Add true and false
 impl Literal {
     pub fn new(value: Token) -> Self {
         let value = match value.token_type {
             TokenType::Number(_) => value,
             TokenType::String(_) => value,
+            TokenType::True => value,
+            TokenType::False => value,
             _ => Token::new(TokenType::Nil, "nil".to_string(), value.line),
         };
         Self { value }

@@ -1,4 +1,4 @@
-use crate::error_reporintg;
+use crate::error_reporintg::{MyError, Report};
 
 use super::keywords::TokenKeywords;
 use super::token::{Token, TokenType};
@@ -26,7 +26,10 @@ impl Scanner {
     pub fn scan_tokens(&mut self) -> Vec<Token> {
         while !self.is_at_end() {
             self.start = self.current;
-            self.scan_token();
+            match self.scan_token() {
+                Ok(_) => {}
+                Err(err) => err.report(),
+            }
         }
 
         self.add_token(TokenType::Eof);
@@ -42,85 +45,91 @@ impl Scanner {
         Scanner::is_alpha(c) || c.is_ascii_digit()
     }
 
-    fn scan_token(&mut self) {
+    fn scan_token(&mut self) -> Result<(), MyError> {
         let c: char = self.advance();
 
         match c {
-            '(' => self.add_token(TokenType::LeftParen),
-            ')' => self.add_token(TokenType::RightParen),
-            '{' => self.add_token(TokenType::LeftBrace),
-            '}' => self.add_token(TokenType::RightBrace),
-            ',' => self.add_token(TokenType::Comma),
-            '.' => self.add_token(TokenType::Dot),
-            '-' => self.add_token(TokenType::Minus),
-            '+' => self.add_token(TokenType::Plus),
-            ';' => self.add_token(TokenType::Semicolon),
-            '*' => self.add_token(TokenType::Star),
+            '(' => Ok(self.add_token(TokenType::LeftParen)),
+            ')' => Ok(self.add_token(TokenType::RightParen)),
+            '{' => Ok(self.add_token(TokenType::LeftBrace)),
+            '}' => Ok(self.add_token(TokenType::RightBrace)),
+            ',' => Ok(self.add_token(TokenType::Comma)),
+            '.' => Ok(self.add_token(TokenType::Dot)),
+            '-' => Ok(self.add_token(TokenType::Minus)),
+            '+' => Ok(self.add_token(TokenType::Plus)),
+            ';' => Ok(self.add_token(TokenType::Semicolon)),
+            '*' => Ok(self.add_token(TokenType::Star)),
 
             '!' => {
                 let matches = self.match_to('=');
 
-                self.add_token(if matches {
+                Ok(self.add_token(if matches {
                     TokenType::BangEqual
                 } else {
                     TokenType::Bang
-                })
+                }))
             }
 
             '=' => {
                 let matches = self.match_to('=');
 
-                self.add_token(if matches {
+                Ok(self.add_token(if matches {
                     TokenType::EqualEqual
                 } else {
                     TokenType::Equal
-                })
+                }))
             }
 
             '<' => {
                 let matches = self.match_to('=');
 
-                self.add_token(if matches {
+                Ok(self.add_token(if matches {
                     TokenType::LessEqual
                 } else {
                     TokenType::Less
-                })
+                }))
             }
 
             '>' => {
                 let matches = self.match_to('=');
 
-                self.add_token(if matches {
+                Ok(self.add_token(if matches {
                     TokenType::GreaterEqual
                 } else {
                     TokenType::Greater
-                })
+                }))
             }
 
             '/' => {
                 if self.match_to('/') {
                     // It's a comment, skip untill the end of the line
-                    while self.peek() != '\n' && !self.is_at_end() {
+                    Ok(while self.peek() != '\n' && !self.is_at_end() {
                         self.advance();
-                    }
+                    })
                 } else if self.match_to('*') {
                     // Multiline comment, skip untill the next */
                     while self.peek() != '*' && self.peek_next() != '/' && !self.is_at_end() {
                         self.advance();
                     }
                     if self.is_at_end() {
-                        error_reporintg::error(self.line, "Unterminated comment.");
+                        Err(MyError::SyntaxError {
+                            token: None,
+                            line: self.line,
+                            message: "Unterminated comment.".to_string(),
+                        })
                     } else {
                         self.advance();
                         self.advance();
+                        Ok(())
                     }
                 } else {
                     self.add_token(TokenType::Slash);
+                    Ok(())
                 }
             }
 
-            '\n' => self.line += 1,
-            ' ' | '\r' | '\t' => {}
+            '\n' => Ok(self.line += 1),
+            ' ' | '\r' | '\t' => Ok(()),
 
             // Literals
             '"' => self.string(),
@@ -128,10 +137,17 @@ impl Scanner {
             _ => {
                 if c.is_ascii_digit() {
                     self.number();
+                    Ok(())
                 } else if Scanner::is_alpha(c) {
                     self.identifier_or_keyword();
+                    Ok(())
                 } else {
-                    error_reporintg::error(self.line, "Unexpected character.")
+                    // error_reporintg::error(self.line, "Unexpected character.".to_string())
+                    Err(MyError::SyntaxError {
+                        token: None,
+                        line: self.line,
+                        message: "Unexpected character.".to_string(),
+                    })
                 }
             }
         }
@@ -166,7 +182,7 @@ impl Scanner {
         ))
     }
 
-    fn string(&mut self) {
+    fn string(&mut self) -> Result<(), MyError> {
         while self.peek() != '"' && !self.is_at_end() {
             if self.peek() == '\n' {
                 self.line += 1;
@@ -175,8 +191,11 @@ impl Scanner {
         }
 
         if self.is_at_end() {
-            error_reporintg::error(self.line - 1, "Unterminated string.");
-            return;
+            return Err(MyError::SyntaxError {
+                token: None,
+                line: self.line - 1,
+                message: "Unterminated string.".to_string(),
+            });
         }
 
         self.advance();
@@ -184,6 +203,8 @@ impl Scanner {
         let value = &self.source[self.start + 1..self.current - 1];
 
         self.add_token(TokenType::String(value.to_string()));
+
+        Ok(())
     }
 
     fn peek(&self) -> char {
