@@ -7,7 +7,7 @@ use std::{
     process,
 };
 
-use rulox::{scanner, utils::sample_tree};
+use rulox::{error_reporintg::Report, rulox::Rulox};
 
 fn main() {
     env_logger::init();
@@ -25,17 +25,23 @@ fn main() {
             process::exit(64);
         }
     }
-
-    // sample_tree();
 }
 
 fn run_file(filename: String) {
-    let content = fs::read(filename).unwrap();
+    let content = fs::read_to_string(filename).unwrap();
+    let rulox = Rulox::from(content);
 
-    scanner::run(String::from_utf8(content).unwrap());
+    match rulox.run() {
+        Ok(_) => {}
+        Err(err) => {
+            err.report();
+            // process::exit(1);
+        }
+    }
 }
 
 fn run_prompt() -> io::Result<()> {
+    let rulox = Rulox::new();
     loop {
         print!("rulox> ");
         io::stdout().flush()?;
@@ -47,7 +53,13 @@ fn run_prompt() -> io::Result<()> {
             break;
         }
 
-        scanner::run(input);
+        match rulox.prompt_run(input) {
+            Ok(_) => {}
+            Err(err) => {
+                err.report();
+                // process::exit(1);
+            }
+        }
     }
 
     Ok(())

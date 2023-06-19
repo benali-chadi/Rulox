@@ -30,22 +30,24 @@ impl Report for MyError {
                     match token.token_type {
                         TokenType::Eof => {
                             let msg = "at end: ".to_string() + &message;
-                            error(*line, msg);
+                            error(*line, msg, "Parse".to_string());
                         }
                         _ => {
-                            let msg = "at '".to_string() + &token.lexeme + "'" + &message;
-                            error(*line, msg);
+                            let msg = "at '".to_string() + &token.lexeme + "' " + &message;
+                            error(*line, msg, "Parse".to_string());
                         }
                     }
                 }
             }
-            MyError::SyntaxError { line, message, .. } => error(*line, message.to_string()),
+            MyError::SyntaxError { line, message, .. } => {
+                error(*line, message.to_string(), "Syntax".to_string())
+            }
         }
     }
 }
 
-fn error(line: usize, message: String) {
-    report(line, message, 0);
+fn error(line: usize, message: String, err_type: String) {
+    report(line, message, err_type, 0);
 }
 
 // fn warn(line: usize, message: String) {
@@ -56,11 +58,12 @@ fn error(line: usize, message: String) {
 //     report(0, message, 2);
 // }
 
-fn report(line: usize, message: String, level: i32) {
+fn report(line: usize, message: String, rep_type: String, level: i32) {
     if level == 0 {
         eprintln!(
-            "[line {}] {}: {}",
+            "[line {}] {} {}: {}",
             line.to_string().bold(),
+            rep_type.red().bold(),
             "Error".red().bold(),
             message.bold()
         );

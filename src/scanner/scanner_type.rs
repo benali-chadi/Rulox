@@ -1,4 +1,4 @@
-use crate::error_reporintg::{MyError, Report};
+use crate::error_reporintg::MyError;
 
 use super::keywords::TokenKeywords;
 use super::token::{Token, TokenType};
@@ -23,18 +23,15 @@ impl Scanner {
         }
     }
 
-    pub fn scan_tokens(&mut self) -> Vec<Token> {
+    pub fn scan_tokens(&mut self) -> Result<Vec<Token>, MyError> {
         while !self.is_at_end() {
             self.start = self.current;
-            match self.scan_token() {
-                Ok(_) => {}
-                Err(err) => err.report(),
-            }
+            self.scan_token()?;
         }
 
         self.add_token(TokenType::Eof);
 
-        self.tokens.clone()
+        Ok(self.tokens.clone())
     }
 
     pub fn is_alpha(c: char) -> bool {
