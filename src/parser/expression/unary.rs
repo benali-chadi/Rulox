@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use crate::{expression::utils, scanner::token::Token};
+use crate::{parser::expression::utils, scanner::token::Token};
 
 use super::{Expr, ExprTrait};
 

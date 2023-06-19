@@ -1,8 +1,10 @@
 use crate::{
     error_reporintg::MyError,
-    expression::{Binary, Expr, Grouping, Literal, Unary},
     scanner::token::{Token, TokenType},
 };
+
+pub mod expression;
+pub use self::expression::*;
 
 pub struct Parser {
     tokens: Vec<Token>,

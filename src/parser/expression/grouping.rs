@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use crate::expression::utils;
+use crate::parser::expression::utils;
 
 use super::{Expr, ExprTrait};
 
