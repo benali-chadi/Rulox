@@ -20,7 +20,6 @@ impl Parser {
     }
 
     pub fn parse(&mut self) -> Result<Expr, MyError> {
-        // self.expression()
         self.comma()
     }
 
