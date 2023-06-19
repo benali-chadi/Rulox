@@ -3,10 +3,12 @@ use std::fmt::Display;
 pub use binary::Binary;
 pub use grouping::Grouping;
 pub use literal::Literal;
+pub use ternary::Ternary;
 pub use unary::Unary;
 mod binary;
 mod grouping;
 mod literal;
+mod ternary;
 mod unary;
 mod utils;
 

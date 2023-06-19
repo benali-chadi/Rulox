@@ -24,10 +24,29 @@ impl Parser {
     }
 
     fn comma(&mut self) -> Result<Expr, MyError> {
-        let mut expr = self.expression()?;
+        let mut expr = self.ternary()?;
 
         while self.matches(&[TokenType::Comma]) {
-            expr = self.expression()?;
+            expr = self.ternary()?;
+        }
+
+        Ok(expr)
+    }
+
+    fn ternary(&mut self) -> Result<Expr, MyError> {
+        let mut expr = self.expression()?;
+
+        while self.matches(&[TokenType::QuestionMark]) && !self.is_at_end() {
+            let first = self.expression()?;
+            if !self.matches(&[TokenType::Colon]) {
+                return Err(MyError::ParseError {
+                    token: Some(Token::new(TokenType::QuestionMark, "?".to_string(), 1)),
+                    line: 1,
+                    message: "Expected a ':'".to_string(),
+                });
+            }
+            let second = self.expression()?;
+            expr = Expr::new(Box::new(Ternary::new(expr, first, second)));
         }
 
         Ok(expr)
@@ -104,9 +123,9 @@ impl Parser {
         match self.peek().token_type {
             TokenType::False
             | TokenType::True
-            | TokenType::Nil
             | TokenType::Number(_)
-            | TokenType::String(_) => {
+            | TokenType::String(_)
+            | TokenType::Nil => {
                 self.advance();
 
                 Ok(Expr::new(Box::new(Literal::new(self.previous().clone()))))
@@ -120,7 +139,6 @@ impl Parser {
                     Ok(_) => Ok(Expr::new(Box::new(Grouping::new(expr)))),
                     Err(err) => Err(err),
                 }
-                // Ok(Expr::new(Box::new(Grouping::new(expr))))
             }
 
             _ => Err(MyError::ParseError {

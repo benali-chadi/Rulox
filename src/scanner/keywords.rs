@@ -23,6 +23,7 @@ impl TokenKeywords {
         keywords.insert("super".to_string(), TokenType::Super);
         keywords.insert("this".to_string(), TokenType::This);
         keywords.insert("true".to_string(), TokenType::True);
+        keywords.insert("false".to_string(), TokenType::False);
         keywords.insert("var".to_string(), TokenType::Var);
         keywords.insert("while".to_string(), TokenType::While);
 

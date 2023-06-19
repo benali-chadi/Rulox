@@ -134,6 +134,10 @@ impl Scanner {
             '\n' => Ok(self.line += 1),
             ' ' | '\r' | '\t' => Ok(()),
 
+            // For Ternary Operator Challenge
+            '?' => Ok(self.add_token(TokenType::QuestionMark)),
+            ':' => Ok(self.add_token(TokenType::Colon)),
+
             // Literals
             '"' => self.string(),
 

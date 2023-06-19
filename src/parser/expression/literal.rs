@@ -27,6 +27,8 @@ impl Display for Literal {
         match &self.value.token_type {
             TokenType::Number(val) => write!(f, "{}", val),
             TokenType::String(val) => write!(f, "\"{}\"", val),
+            TokenType::True => write!(f, "true"),
+            TokenType::False => write!(f, "false"),
             _ => write!(f, "nil"),
         }
     }
