@@ -4,6 +4,8 @@ pub use binary::Binary;
 pub use grouping::Grouping;
 pub use literal::Literal;
 pub use unary::Unary;
+
+use crate::error_reporintg::MyError;
 mod binary;
 mod grouping;
 mod literal;
@@ -11,7 +13,7 @@ mod unary;
 mod utils;
 
 pub trait ExprTrait: Display {
-    fn evaluate(&self) -> bool;
+    fn evaluate(&self) -> Result<Literal, MyError>;
 }
 
 pub struct Expr {
@@ -31,7 +33,7 @@ impl Display for Expr {
 }
 
 impl Expr {
-    pub fn eval(&self) -> bool {
+    pub fn evaluate(&self) -> Result<Literal, MyError> {
         self.expression.evaluate()
     }
 }

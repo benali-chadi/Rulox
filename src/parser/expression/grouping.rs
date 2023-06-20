@@ -1,8 +1,8 @@
 use std::fmt::Display;
 
-use crate::parser::expression::utils;
+use crate::{error_reporintg::MyError, parser::expression::utils};
 
-use super::{Expr, ExprTrait};
+use super::{Expr, ExprTrait, Literal};
 
 pub struct Grouping {
     pub expression: Expr,
@@ -21,7 +21,7 @@ impl Display for Grouping {
 }
 
 impl ExprTrait for Grouping {
-    fn evaluate(&self) -> bool {
-        true
+    fn evaluate(&self) -> Result<Literal, MyError> {
+        self.expression.evaluate()
     }
 }

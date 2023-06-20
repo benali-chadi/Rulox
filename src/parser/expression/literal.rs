@@ -1,11 +1,15 @@
 use std::fmt::Display;
 
-use crate::scanner::token::{Token, TokenType};
+use crate::{
+    error_reporintg::MyError,
+    scanner::token::{Token, TokenType},
+};
 
 use super::ExprTrait;
 
+#[derive(Clone)]
 pub struct Literal {
-    value: Token,
+    pub value: Token,
 }
 
 // Add true and false
@@ -19,6 +23,13 @@ impl Literal {
             _ => Token::new(TokenType::Nil, "nil".to_string(), value.line),
         };
         Self { value }
+    }
+
+    pub fn is_truthy(token_type: TokenType) -> bool {
+        match token_type {
+            TokenType::False | TokenType::Nil => false,
+            _ => true,
+        }
     }
 }
 
@@ -35,7 +46,7 @@ impl Display for Literal {
 }
 
 impl ExprTrait for Literal {
-    fn evaluate(&self) -> bool {
-        true
+    fn evaluate(&self) -> Result<Literal, MyError> {
+        Ok(self.clone())
     }
 }

@@ -16,6 +16,10 @@ pub enum MyError {
         line: usize,
         message: String,
     },
+    RuntimeError {
+        line: usize,
+        message: String,
+    },
 }
 
 impl Report for MyError {
@@ -41,6 +45,9 @@ impl Report for MyError {
             }
             MyError::SyntaxError { line, message, .. } => {
                 error(*line, message.to_string(), "Syntax".to_string())
+            }
+            MyError::RuntimeError { line, message } => {
+                error(*line, message.to_string(), "Eval".to_string())
             }
         }
     }
