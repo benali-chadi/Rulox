@@ -1,7 +1,7 @@
 use std::fmt::Display;
 
 use crate::{
-    error_reporintg::MyError,
+    rulox_error::RuloxError,
     scanner::token::{Token, TokenType},
 };
 
@@ -46,7 +46,7 @@ impl Display for Literal {
 }
 
 impl ExprTrait for Literal {
-    fn evaluate(&self) -> Result<Literal, MyError> {
+    fn interpret(&self) -> Result<Literal, RuloxError> {
         Ok(self.clone())
     }
 }

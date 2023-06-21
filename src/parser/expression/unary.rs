@@ -1,8 +1,8 @@
 use std::fmt::Display;
 
 use crate::{
-    error_reporintg::MyError,
     parser::expression::utils,
+    rulox_error::RuloxError,
     scanner::token::{Token, TokenType},
 };
 
@@ -30,8 +30,8 @@ impl Display for Unary {
 }
 
 impl ExprTrait for Unary {
-    fn evaluate(&self) -> Result<Literal, MyError> {
-        let literal = self.right.evaluate()?;
+    fn interpret(&self) -> Result<Literal, RuloxError> {
+        let literal = self.right.interpret()?;
 
         match self.operator.token_type {
             TokenType::Minus => match literal.value.token_type {
@@ -40,9 +40,9 @@ impl ExprTrait for Unary {
                     (-val).to_string(),
                     literal.value.line,
                 ))),
-                _ => Err(MyError::RuntimeError {
+                _ => Err(RuloxError::RuntimeError {
                     line: literal.value.line,
-                    message: "Literal is not a number".to_string(),
+                    message: "Operand must be a number".to_string(),
                 }),
             },
             TokenType::Bang => {
@@ -59,7 +59,7 @@ impl ExprTrait for Unary {
                     literal.value.line,
                 )))
             }
-            _ => Err(MyError::RuntimeError {
+            _ => Err(RuloxError::RuntimeError {
                 line: literal.value.line,
                 message: "unary operator not supported".to_string(),
             }),

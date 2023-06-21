@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use crate::{error_reporintg::MyError, parser::expression::utils};
+use crate::{parser::expression::utils, rulox_error::RuloxError};
 
 use super::{Expr, ExprTrait, Literal};
 
@@ -21,7 +21,7 @@ impl Display for Grouping {
 }
 
 impl ExprTrait for Grouping {
-    fn evaluate(&self) -> Result<Literal, MyError> {
-        self.expression.evaluate()
+    fn interpret(&self) -> Result<Literal, RuloxError> {
+        self.expression.interpret()
     }
 }

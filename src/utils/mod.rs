@@ -1,9 +1,14 @@
 use std::{
     fs,
     io::{self, Write},
+    process,
 };
 
-use crate::{error_reporintg::Report, parser::Expr, rulox::Rulox};
+use crate::{
+    parser::Expr,
+    rulox::Rulox,
+    rulox_error::{Report, RuloxError},
+};
 
 pub fn run_file(filename: String) {
     let content = fs::read_to_string(filename).unwrap();
@@ -13,6 +18,12 @@ pub fn run_file(filename: String) {
         Ok(_) => {}
         Err(err) => {
             err.report();
+            match err {
+                RuloxError::RuntimeError { .. } => {
+                    process::exit(70);
+                }
+                _ => {}
+            }
         }
     }
 }

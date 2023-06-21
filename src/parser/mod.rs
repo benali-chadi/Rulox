@@ -1,5 +1,5 @@
 use crate::{
-    error_reporintg::MyError,
+    rulox_error::RuloxError,
     scanner::token::{Token, TokenType},
 };
 
@@ -19,15 +19,15 @@ impl Parser {
         }
     }
 
-    pub fn parse(&mut self) -> Result<Expr, MyError> {
+    pub fn parse(&mut self) -> Result<Expr, RuloxError> {
         self.expression()
     }
 
-    fn expression(&mut self) -> Result<Expr, MyError> {
+    fn expression(&mut self) -> Result<Expr, RuloxError> {
         self.equality()
     }
 
-    fn equality(&mut self) -> Result<Expr, MyError> {
+    fn equality(&mut self) -> Result<Expr, RuloxError> {
         let mut expr = self.comparison()?;
 
         while self.matches(&[TokenType::BangEqual, TokenType::EqualEqual]) {
@@ -39,7 +39,7 @@ impl Parser {
         Ok(expr)
     }
 
-    fn comparison(&mut self) -> Result<Expr, MyError> {
+    fn comparison(&mut self) -> Result<Expr, RuloxError> {
         let mut expr = self.term()?;
 
         while self.matches(&[
@@ -56,7 +56,7 @@ impl Parser {
         Ok(expr)
     }
 
-    fn term(&mut self) -> Result<Expr, MyError> {
+    fn term(&mut self) -> Result<Expr, RuloxError> {
         let mut expr = self.factor()?;
 
         while self.matches(&[TokenType::Minus, TokenType::Plus]) {
@@ -68,7 +68,7 @@ impl Parser {
         Ok(expr)
     }
 
-    fn factor(&mut self) -> Result<Expr, MyError> {
+    fn factor(&mut self) -> Result<Expr, RuloxError> {
         let mut expr = self.unary()?;
 
         while self.matches(&[TokenType::Slash, TokenType::Star]) {
@@ -80,7 +80,7 @@ impl Parser {
         Ok(expr)
     }
 
-    fn unary(&mut self) -> Result<Expr, MyError> {
+    fn unary(&mut self) -> Result<Expr, RuloxError> {
         if self.matches(&[TokenType::Bang, TokenType::Minus]) {
             let operator = self.previous().clone();
             let right = self.unary()?;
@@ -90,7 +90,7 @@ impl Parser {
         self.primary()
     }
 
-    fn primary(&mut self) -> Result<Expr, MyError> {
+    fn primary(&mut self) -> Result<Expr, RuloxError> {
         match self.peek().token_type {
             TokenType::False
             | TokenType::True
@@ -113,7 +113,7 @@ impl Parser {
                 // Ok(Expr::new(Box::new(Grouping::new(expr))))
             }
 
-            _ => Err(MyError::ParseError {
+            _ => Err(RuloxError::ParseError {
                 token: Some(self.peek().clone()),
                 line: self.peek().line,
                 message: "Expect expression".to_string(),
@@ -121,12 +121,12 @@ impl Parser {
         }
     }
 
-    fn consume(&mut self, token_type: TokenType, msg: &str) -> Result<Token, MyError> {
+    fn consume(&mut self, token_type: TokenType, msg: &str) -> Result<Token, RuloxError> {
         if self.check(&token_type) {
             return Ok(self.advance());
         }
 
-        Err(MyError::ParseError {
+        Err(RuloxError::ParseError {
             token: Some(self.peek().clone()),
             line: self.peek().line,
             message: msg.to_string(),

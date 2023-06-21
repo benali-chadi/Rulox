@@ -5,7 +5,7 @@ pub trait Report {
     fn report(&self);
 }
 
-pub enum MyError {
+pub enum RuloxError {
     ParseError {
         token: Option<Token>,
         line: usize,
@@ -22,10 +22,10 @@ pub enum MyError {
     },
 }
 
-impl Report for MyError {
+impl Report for RuloxError {
     fn report(&self) {
         match self {
-            MyError::ParseError {
+            RuloxError::ParseError {
                 token,
                 line,
                 message,
@@ -43,11 +43,11 @@ impl Report for MyError {
                     }
                 }
             }
-            MyError::SyntaxError { line, message, .. } => {
+            RuloxError::SyntaxError { line, message, .. } => {
                 error(*line, message.to_string(), "Syntax".to_string())
             }
-            MyError::RuntimeError { line, message } => {
-                error(*line, message.to_string(), "Eval".to_string())
+            RuloxError::RuntimeError { line, message } => {
+                error(*line, message.to_string(), "Runtime".to_string())
             }
         }
     }

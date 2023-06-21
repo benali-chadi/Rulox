@@ -5,7 +5,7 @@ pub use grouping::Grouping;
 pub use literal::Literal;
 pub use unary::Unary;
 
-use crate::error_reporintg::MyError;
+use crate::rulox_error::RuloxError;
 mod binary;
 mod grouping;
 mod literal;
@@ -13,7 +13,7 @@ mod unary;
 mod utils;
 
 pub trait ExprTrait: Display {
-    fn evaluate(&self) -> Result<Literal, MyError>;
+    fn interpret(&self) -> Result<Literal, RuloxError>;
 }
 
 pub struct Expr {
@@ -33,7 +33,7 @@ impl Display for Expr {
 }
 
 impl Expr {
-    pub fn evaluate(&self) -> Result<Literal, MyError> {
-        self.expression.evaluate()
+    pub fn interpret(&self) -> Result<Literal, RuloxError> {
+        self.expression.interpret()
     }
 }

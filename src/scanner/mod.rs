@@ -1,13 +1,11 @@
 pub(self) mod keywords;
 pub mod token;
 
-use crate::error_reporintg::MyError;
+use crate::rulox_error::RuloxError;
 
 use token::{Token, TokenType};
 
 use self::keywords::TokenKeywords;
-// use super::keywords::TokenKeywords;
-// use super::token::{Token, TokenType};
 
 pub struct Scanner {
     source: String,
@@ -29,7 +27,7 @@ impl Scanner {
         }
     }
 
-    pub fn scan_tokens(&mut self) -> Result<Vec<Token>, MyError> {
+    pub fn scan_tokens(&mut self) -> Result<Vec<Token>, RuloxError> {
         while !self.is_at_end() {
             self.start = self.current;
             self.scan_token()?;
@@ -48,7 +46,7 @@ impl Scanner {
         Scanner::is_alpha(c) || c.is_ascii_digit()
     }
 
-    fn scan_token(&mut self) -> Result<(), MyError> {
+    fn scan_token(&mut self) -> Result<(), RuloxError> {
         let c: char = self.advance();
 
         match c {
@@ -115,7 +113,7 @@ impl Scanner {
                         self.advance();
                     }
                     if self.is_at_end() {
-                        Err(MyError::SyntaxError {
+                        Err(RuloxError::SyntaxError {
                             token: None,
                             line: self.line,
                             message: "Unterminated comment.".to_string(),
@@ -146,7 +144,7 @@ impl Scanner {
                     Ok(())
                 } else {
                     // error_reporintg::error(self.line, "Unexpected character.".to_string())
-                    Err(MyError::SyntaxError {
+                    Err(RuloxError::SyntaxError {
                         token: None,
                         line: self.line,
                         message: "Unexpected character.".to_string(),
@@ -185,7 +183,7 @@ impl Scanner {
         ))
     }
 
-    fn string(&mut self) -> Result<(), MyError> {
+    fn string(&mut self) -> Result<(), RuloxError> {
         while self.peek() != '"' && !self.is_at_end() {
             if self.peek() == '\n' {
                 self.line += 1;
@@ -194,7 +192,7 @@ impl Scanner {
         }
 
         if self.is_at_end() {
-            return Err(MyError::SyntaxError {
+            return Err(RuloxError::SyntaxError {
                 token: None,
                 line: self.line - 1,
                 message: "Unterminated string.".to_string(),

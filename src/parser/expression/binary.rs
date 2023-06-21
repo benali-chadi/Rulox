@@ -1,8 +1,9 @@
 use std::fmt::Display;
 
 use crate::{
-    error_reporintg::MyError,
     parser::expression::utils,
+    rulox::Rulox,
+    rulox_error::RuloxError,
     scanner::token::{Token, TokenType},
 };
 
@@ -35,9 +36,9 @@ impl Display for Binary {
 }
 
 impl ExprTrait for Binary {
-    fn evaluate(&self) -> Result<Literal, MyError> {
-        let left = self.left.evaluate()?;
-        let right = self.right.evaluate()?;
+    fn interpret(&self) -> Result<Literal, RuloxError> {
+        let left = self.left.interpret()?;
+        let right = self.right.interpret()?;
 
         match self.operator.token_type {
             TokenType::Minus => match (left.value.token_type, right.value.token_type) {
@@ -50,7 +51,10 @@ impl ExprTrait for Binary {
                     )));
                 }
                 _ => {
-                    return Err(MyError::RuntimeError { line: left.value.line, message: "for the '-' binary oprator, the left and right operands must be of type Number".to_string() });
+                    return Err(RuloxError::RuntimeError {
+                        line: left.value.line,
+                        message: "at '-' oprator Expect type Number".to_string(),
+                    });
                 }
             },
 
@@ -64,7 +68,10 @@ impl ExprTrait for Binary {
                     )));
                 }
                 _ => {
-                    return Err(MyError::RuntimeError { line: left.value.line, message: "for the '/' binary oprator, the left and right operands must be of type Number".to_string() });
+                    return Err(RuloxError::RuntimeError {
+                        line: left.value.line,
+                        message: "at '/' oprator Expect type Number".to_string(),
+                    });
                 }
             },
 
@@ -78,7 +85,10 @@ impl ExprTrait for Binary {
                     )));
                 }
                 _ => {
-                    return Err(MyError::RuntimeError { line: left.value.line, message: "for the '*' binary oprator, the left and right operands must be of type Number".to_string() });
+                    return Err(RuloxError::RuntimeError {
+                        line: left.value.line,
+                        message: "at '*' oprator Expect type Number".to_string(),
+                    });
                 }
             },
             TokenType::Plus => match (left.value.token_type, right.value.token_type) {
@@ -90,8 +100,16 @@ impl ExprTrait for Binary {
                         left.value.line,
                     )));
                 }
-                (TokenType::String(lval), TokenType::String(rval)) => {
-                    let value = lval + &rval;
+                (TokenType::String(lval), token_type) => {
+                    let value = lval + &Rulox::literal_token_type_to_string(token_type);
+                    return Ok(Literal::new(Token::new(
+                        TokenType::String((&value).to_string()),
+                        (&value).to_string(),
+                        left.value.line,
+                    )));
+                }
+                (token_type, TokenType::String(lval)) => {
+                    let value = Rulox::literal_token_type_to_string(token_type) + &lval;
                     return Ok(Literal::new(Token::new(
                         TokenType::String((&value).to_string()),
                         (&value).to_string(),
@@ -99,7 +117,10 @@ impl ExprTrait for Binary {
                     )));
                 }
                 _ => {
-                    return Err(MyError::RuntimeError { line: left.value.line, message: "for the '+' binary oprator, the left and right operands must be of type Number or String".to_string() });
+                    return Err(RuloxError::RuntimeError {
+                        line: left.value.line,
+                        message: "at '+' oprator Expect type Number or one of String".to_string(),
+                    });
                 }
             },
             // Comparison Operators
@@ -118,7 +139,10 @@ impl ExprTrait for Binary {
                     )));
                 }
                 _ => {
-                    return Err(MyError::RuntimeError { line: left.value.line, message: "for the '>' binary oprator, the left and right operands must be of type Number".to_string() });
+                    return Err(RuloxError::RuntimeError {
+                        line: left.value.line,
+                        message: "at '>' oprator Expect type Number".to_string(),
+                    });
                 }
             },
             TokenType::GreaterEqual => match (left.value.token_type, right.value.token_type) {
@@ -136,7 +160,10 @@ impl ExprTrait for Binary {
                     )));
                 }
                 _ => {
-                    return Err(MyError::RuntimeError { line: left.value.line, message: "for the '>=' binary oprator, the left and right operands must be of type Number".to_string() });
+                    return Err(RuloxError::RuntimeError {
+                        line: left.value.line,
+                        message: "at '>=' oprator Expect type Number".to_string(),
+                    });
                 }
             },
             TokenType::Less => match (left.value.token_type, right.value.token_type) {
@@ -154,7 +181,10 @@ impl ExprTrait for Binary {
                     )));
                 }
                 _ => {
-                    return Err(MyError::RuntimeError { line: left.value.line, message: "for the '<' binary oprator, the left and right operands must be of type Number".to_string() });
+                    return Err(RuloxError::RuntimeError {
+                        line: left.value.line,
+                        message: "at '<' oprator Expect type Number".to_string(),
+                    });
                 }
             },
             TokenType::LessEqual => match (left.value.token_type, right.value.token_type) {
@@ -172,7 +202,10 @@ impl ExprTrait for Binary {
                     )));
                 }
                 _ => {
-                    return Err(MyError::RuntimeError { line: left.value.line, message: "for the '<=' binary oprator, the left and right operands must be of type Number".to_string() });
+                    return Err(RuloxError::RuntimeError {
+                        line: left.value.line,
+                        message: "at '<=' oprator Expect type Number".to_string(),
+                    });
                 }
             },
             TokenType::EqualEqual => match (left.value.token_type, right.value.token_type) {
@@ -269,7 +302,10 @@ impl ExprTrait for Binary {
                 }
                 // string -> string, string -> number
                 _ => {
-                    return Err(MyError::RuntimeError { line: left.value.line, message: "for the '<=' binary oprator, the left and right operands must be of type Number".to_string() });
+                    return Err(RuloxError::RuntimeError {
+                        line: left.value.line,
+                        message: "at '==' oprator This must not happen".to_string(),
+                    });
                 }
             },
             TokenType::BangEqual => match (left.value.token_type, right.value.token_type) {
@@ -366,10 +402,13 @@ impl ExprTrait for Binary {
                 }
                 // string -> string, string -> number
                 _ => {
-                    return Err(MyError::RuntimeError { line: left.value.line, message: "for the '<=' binary oprator, the left and right operands must be of type Number".to_string() });
+                    return Err(RuloxError::RuntimeError {
+                        line: left.value.line,
+                        message: "at '!=' oprator This must not happen".to_string(),
+                    });
                 }
             },
-            _ => Err(MyError::RuntimeError {
+            _ => Err(RuloxError::RuntimeError {
                 line: left.value.line,
                 message: "Binary Operator not supported".to_string(),
             }),
