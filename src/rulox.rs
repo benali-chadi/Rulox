@@ -1,5 +1,5 @@
 use crate::{
-    parser::{Literal, Parser},
+    parser::Parser,
     rulox_error::RuloxError,
     scanner::{token::TokenType, Scanner},
     utils,
@@ -24,11 +24,19 @@ impl Rulox {
     pub fn run(&self) -> Result<(), RuloxError> {
         let mut scanner = Scanner::new(&self.source);
         let tokens = scanner.scan_tokens()?;
+
+        println!("{}", "Tokens".bold().blue());
+        for token in &tokens {
+            println!("{token}");
+        }
+
         let mut parser = Parser::new(&tokens);
         let expr = parser.parse()?;
 
+        println!("{}", "ASTree".bold().green());
         utils::print_tree(&expr);
 
+        println!("{}", "Result".bold().yellow());
         let literal = expr.interpret()?;
 
         println!(

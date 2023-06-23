@@ -1,7 +1,7 @@
 use std::fmt::Display;
 
 use crate::{
-    parser::expression::utils,
+    expression::utils,
     rulox_error::RuloxError,
     scanner::token::{Token, TokenType},
 };

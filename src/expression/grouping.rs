@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use crate::{parser::expression::utils, rulox_error::RuloxError};
+use crate::{expression::utils, rulox_error::RuloxError};
 
 use super::{Expr, ExprTrait, Literal};
 

@@ -1,10 +1,8 @@
 use crate::{
+    expression::*,
     rulox_error::RuloxError,
     scanner::token::{Token, TokenType},
 };
-
-pub mod expression;
-pub use self::expression::*;
 
 pub struct Parser {
     tokens: Vec<Token>,
@@ -110,7 +108,6 @@ impl Parser {
                     Ok(_) => Ok(Expr::new(Box::new(Grouping::new(expr)))),
                     Err(err) => Err(err),
                 }
-                // Ok(Expr::new(Box::new(Grouping::new(expr))))
             }
 
             _ => Err(RuloxError::ParseError {

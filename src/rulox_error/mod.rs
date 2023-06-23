@@ -5,6 +5,7 @@ pub trait Report {
     fn report(&self);
 }
 
+#[derive(Debug)]
 pub enum RuloxError {
     ParseError {
         token: Option<Token>,
