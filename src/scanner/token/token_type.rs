@@ -23,8 +23,8 @@ pub enum TokenType {
     Less,
     LessEqual,
 
-    // Literals.
     Identifier(String),
+    // Literals.
     String(String),
     Number(f64),
 

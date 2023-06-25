@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use crate::{
     expression::utils,
-    rulox_error::RuloxError,
+    rulox_error::{RuloxError, RuloxResult},
     scanner::token::{Token, TokenType},
 };
 
@@ -30,14 +30,14 @@ impl Display for Unary {
 }
 
 impl ExprTrait for Unary {
-    fn interpret(&self) -> Result<Literal, RuloxError> {
-        let literal = self.right.interpret()?;
+    fn execute(&self) -> RuloxResult<Literal> {
+        let literal = self.right.execute()?;
 
         match self.operator.token_type {
             TokenType::Minus => match literal.value.token_type {
                 TokenType::Number(val) => Ok(Literal::new(Token::new(
                     TokenType::Number(-val),
-                    (-val).to_string(),
+                    &(-val).to_string(),
                     literal.value.line,
                 ))),
                 _ => Err(RuloxError::RuntimeError {
@@ -49,13 +49,13 @@ impl ExprTrait for Unary {
                 if Literal::is_truthy(literal.value.token_type) {
                     return Ok(Literal::new(Token::new(
                         TokenType::False,
-                        "false".to_string(),
+                        "false",
                         literal.value.line,
                     )));
                 }
                 Ok(Literal::new(Token::new(
                     TokenType::True,
-                    "true".to_string(),
+                    "true",
                     literal.value.line,
                 )))
             }

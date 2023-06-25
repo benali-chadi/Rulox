@@ -1,18 +1,21 @@
+use std::fmt::Debug;
+
 use crate::scanner::token::{Token, TokenType};
 use colored::*;
+
+pub type RuloxResult<T> = Result<T, RuloxError>;
 
 pub trait Report {
     fn report(&self);
 }
 
-#[derive(Debug)]
 pub enum RuloxError {
-    ParseError {
+    SyntaxError {
         token: Option<Token>,
         line: usize,
         message: String,
     },
-    SyntaxError {
+    ParseError {
         token: Option<Token>,
         line: usize,
         message: String,
@@ -26,6 +29,9 @@ pub enum RuloxError {
 impl Report for RuloxError {
     fn report(&self) {
         match self {
+            RuloxError::SyntaxError { line, message, .. } => {
+                error(*line, message.to_string(), "Syntax".to_string())
+            }
             RuloxError::ParseError {
                 token,
                 line,
@@ -34,23 +40,27 @@ impl Report for RuloxError {
                 if let Some(token) = token {
                     match token.token_type {
                         TokenType::Eof => {
-                            let msg = "at end: ".to_string() + &message;
+                            let msg = "at end: ".to_string() + message;
                             error(*line, msg, "Parse".to_string());
                         }
                         _ => {
-                            let msg = "at '".to_string() + &token.lexeme + "' " + &message;
+                            let msg = "at '".to_string() + &token.lexeme + "' " + message;
                             error(*line, msg, "Parse".to_string());
                         }
                     }
                 }
             }
-            RuloxError::SyntaxError { line, message, .. } => {
-                error(*line, message.to_string(), "Syntax".to_string())
-            }
             RuloxError::RuntimeError { line, message } => {
                 error(*line, message.to_string(), "Runtime".to_string())
             }
         }
+    }
+}
+
+impl Debug for RuloxError {
+    fn fmt(&self, _f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.report();
+        Ok(())
     }
 }
 

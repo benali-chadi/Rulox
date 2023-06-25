@@ -1,7 +1,8 @@
 use crate::{
-    expression::*,
-    rulox_error::RuloxError,
+    expression::{variable::Variable, *},
+    rulox_error::{RuloxError, RuloxResult},
     scanner::token::{Token, TokenType},
+    statement::{expression::Expression, print::Print, var::Var, Stmt},
 };
 
 pub struct Parser {
@@ -17,15 +18,66 @@ impl Parser {
         }
     }
 
-    pub fn parse(&mut self) -> Result<Expr, RuloxError> {
-        self.expression()
+    pub fn parse(&mut self) -> RuloxResult<Vec<Stmt>> {
+        let mut statements = Vec::new();
+
+        while !self.is_at_end() {
+            // TODO: Match the return of declaration()
+            statements.push(self.declaration()?);
+        }
+
+        Ok(statements)
     }
 
-    fn expression(&mut self) -> Result<Expr, RuloxError> {
+    fn declaration(&mut self) -> RuloxResult<Stmt> {
+        if self.matches(&[TokenType::Var]) {
+            self.var_declaration()?;
+        }
+
+        self.statement()
+    }
+
+    fn var_declaration(&mut self) -> RuloxResult<Stmt> {
+        let name = self.consume(TokenType::Var, "Expect variable name.")?;
+
+        let mut initializer: Option<Expr> = None;
+        if self.matches(&[TokenType::Equal]) {
+            initializer = Some(self.expression()?);
+        }
+
+        self.consume(TokenType::Semicolon, "Expect ';' after variable declration")?;
+
+        Ok(Stmt::new(Box::new(Var::new(name, initializer))))
+    }
+
+    fn statement(&mut self) -> RuloxResult<Stmt> {
+        if self.matches(&[TokenType::Print]) {
+            return self.print_statement();
+        }
+
+        self.expression_statement()
+    }
+
+    fn expression_statement(&mut self) -> RuloxResult<Stmt> {
+        let expression = self.expression()?;
+
+        self.consume(TokenType::Semicolon, "Expected ';' after expression")?;
+
+        Ok(Stmt::new(Box::new(Expression::new(expression))))
+    }
+
+    fn print_statement(&mut self) -> RuloxResult<Stmt> {
+        let expression = self.expression()?;
+        self.consume(TokenType::Semicolon, "Expected ';' after expression")?;
+
+        Ok(Stmt::new(Box::new(Print::new(expression))))
+    }
+
+    fn expression(&mut self) -> RuloxResult<Expr> {
         self.equality()
     }
 
-    fn equality(&mut self) -> Result<Expr, RuloxError> {
+    fn equality(&mut self) -> RuloxResult<Expr> {
         let mut expr = self.comparison()?;
 
         while self.matches(&[TokenType::BangEqual, TokenType::EqualEqual]) {
@@ -37,7 +89,7 @@ impl Parser {
         Ok(expr)
     }
 
-    fn comparison(&mut self) -> Result<Expr, RuloxError> {
+    fn comparison(&mut self) -> RuloxResult<Expr> {
         let mut expr = self.term()?;
 
         while self.matches(&[
@@ -54,7 +106,7 @@ impl Parser {
         Ok(expr)
     }
 
-    fn term(&mut self) -> Result<Expr, RuloxError> {
+    fn term(&mut self) -> RuloxResult<Expr> {
         let mut expr = self.factor()?;
 
         while self.matches(&[TokenType::Minus, TokenType::Plus]) {
@@ -66,7 +118,7 @@ impl Parser {
         Ok(expr)
     }
 
-    fn factor(&mut self) -> Result<Expr, RuloxError> {
+    fn factor(&mut self) -> RuloxResult<Expr> {
         let mut expr = self.unary()?;
 
         while self.matches(&[TokenType::Slash, TokenType::Star]) {
@@ -78,7 +130,7 @@ impl Parser {
         Ok(expr)
     }
 
-    fn unary(&mut self) -> Result<Expr, RuloxError> {
+    fn unary(&mut self) -> RuloxResult<Expr> {
         if self.matches(&[TokenType::Bang, TokenType::Minus]) {
             let operator = self.previous().clone();
             let right = self.unary()?;
@@ -88,7 +140,7 @@ impl Parser {
         self.primary()
     }
 
-    fn primary(&mut self) -> Result<Expr, RuloxError> {
+    fn primary(&mut self) -> RuloxResult<Expr> {
         match self.peek().token_type {
             TokenType::False
             | TokenType::True
@@ -110,6 +162,11 @@ impl Parser {
                 }
             }
 
+            TokenType::Identifier(_) => {
+                self.advance();
+                return Ok(Expr::new(Box::new(Variable::new(self.previous()))));
+            }
+
             _ => Err(RuloxError::ParseError {
                 token: Some(self.peek().clone()),
                 line: self.peek().line,
@@ -118,14 +175,14 @@ impl Parser {
         }
     }
 
-    fn consume(&mut self, token_type: TokenType, msg: &str) -> Result<Token, RuloxError> {
+    fn consume(&mut self, token_type: TokenType, msg: &str) -> RuloxResult<Token> {
         if self.check(&token_type) {
             return Ok(self.advance());
         }
 
         Err(RuloxError::ParseError {
             token: Some(self.peek().clone()),
-            line: self.peek().line,
+            line: self.peek().line - 1,
             message: msg.to_string(),
         })
     }
@@ -170,14 +227,11 @@ impl Parser {
             return false;
         }
 
-        std::mem::discriminant(&self.peek().token_type) == std::mem::discriminant(&token_type)
+        std::mem::discriminant(&self.peek().token_type) == std::mem::discriminant(token_type)
     }
 
     fn is_at_end(&self) -> bool {
-        match self.peek().token_type {
-            TokenType::Eof => true,
-            _ => false,
-        }
+        matches!(self.peek().token_type, TokenType::Eof)
     }
 
     fn peek(&self) -> &Token {

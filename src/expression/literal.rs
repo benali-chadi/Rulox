@@ -1,7 +1,7 @@
 use std::fmt::Display;
 
 use crate::{
-    rulox_error::RuloxError,
+    rulox_error::RuloxResult,
     scanner::token::{Token, TokenType},
 };
 
@@ -20,16 +20,13 @@ impl Literal {
             TokenType::String(_) => value,
             TokenType::True => value,
             TokenType::False => value,
-            _ => Token::new(TokenType::Nil, "nil".to_string(), value.line),
+            _ => Token::new(TokenType::Nil, "nil", value.line),
         };
         Self { value }
     }
 
     pub fn is_truthy(token_type: TokenType) -> bool {
-        match token_type {
-            TokenType::False | TokenType::Nil => false,
-            _ => true,
-        }
+        !matches!(token_type, TokenType::False | TokenType::Nil)
     }
 }
 
@@ -46,7 +43,7 @@ impl Display for Literal {
 }
 
 impl ExprTrait for Literal {
-    fn interpret(&self) -> Result<Literal, RuloxError> {
+    fn execute(&self) -> RuloxResult<Literal> {
         Ok(self.clone())
     }
 }

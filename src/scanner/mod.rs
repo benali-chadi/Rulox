@@ -1,7 +1,7 @@
 pub(self) mod keywords;
 pub mod token;
 
-use crate::rulox_error::RuloxError;
+use crate::rulox_error::{RuloxError, RuloxResult};
 
 use token::{Token, TokenType};
 
@@ -27,7 +27,7 @@ impl Scanner {
         }
     }
 
-    pub fn scan_tokens(&mut self) -> Result<Vec<Token>, RuloxError> {
+    pub fn scan_tokens(&mut self) -> RuloxResult<Vec<Token>> {
         while !self.is_at_end() {
             self.start = self.current;
             self.scan_token()?;
@@ -46,67 +46,104 @@ impl Scanner {
         Scanner::is_alpha(c) || c.is_ascii_digit()
     }
 
-    fn scan_token(&mut self) -> Result<(), RuloxError> {
+    fn scan_token(&mut self) -> RuloxResult<()> {
         let c: char = self.advance();
 
         match c {
-            '(' => Ok(self.add_token(TokenType::LeftParen)),
-            ')' => Ok(self.add_token(TokenType::RightParen)),
-            '{' => Ok(self.add_token(TokenType::LeftBrace)),
-            '}' => Ok(self.add_token(TokenType::RightBrace)),
-            ',' => Ok(self.add_token(TokenType::Comma)),
-            '.' => Ok(self.add_token(TokenType::Dot)),
-            '-' => Ok(self.add_token(TokenType::Minus)),
-            '+' => Ok(self.add_token(TokenType::Plus)),
-            ';' => Ok(self.add_token(TokenType::Semicolon)),
-            '*' => Ok(self.add_token(TokenType::Star)),
+            '(' => {
+                self.add_token(TokenType::LeftParen);
+                Ok(())
+            }
+            ')' => {
+                self.add_token(TokenType::RightParen);
+                Ok(())
+            }
+            '{' => {
+                self.add_token(TokenType::LeftBrace);
+                Ok(())
+            }
+            '}' => {
+                self.add_token(TokenType::RightBrace);
+                Ok(())
+            }
+            ',' => {
+                self.add_token(TokenType::Comma);
+                Ok(())
+            }
+            '.' => {
+                self.add_token(TokenType::Dot);
+                Ok(())
+            }
+            '-' => {
+                self.add_token(TokenType::Minus);
+                Ok(())
+            }
+            '+' => {
+                self.add_token(TokenType::Plus);
+                Ok(())
+            }
+            ';' => {
+                self.add_token(TokenType::Semicolon);
+                Ok(())
+            }
+            '*' => {
+                self.add_token(TokenType::Star);
+                Ok(())
+            }
 
             '!' => {
                 let matches = self.match_to('=');
 
-                Ok(self.add_token(if matches {
+                self.add_token(if matches {
                     TokenType::BangEqual
                 } else {
                     TokenType::Bang
-                }))
+                });
+                Ok(())
+                // Ok(self.add_token(if matches {
+                //     TokenType::BangEqual
+                // } else {
+                //     TokenType::Bang
+                // }))
             }
 
             '=' => {
                 let matches = self.match_to('=');
-
-                Ok(self.add_token(if matches {
+                self.add_token(if matches {
                     TokenType::EqualEqual
                 } else {
                     TokenType::Equal
-                }))
+                });
+                Ok(())
             }
 
             '<' => {
                 let matches = self.match_to('=');
-
-                Ok(self.add_token(if matches {
+                self.add_token(if matches {
                     TokenType::LessEqual
                 } else {
                     TokenType::Less
-                }))
+                });
+                Ok(())
             }
 
             '>' => {
                 let matches = self.match_to('=');
-
-                Ok(self.add_token(if matches {
+                self.add_token(if matches {
                     TokenType::GreaterEqual
                 } else {
                     TokenType::Greater
-                }))
+                });
+                Ok(())
             }
 
             '/' => {
                 if self.match_to('/') {
                     // It's a comment, skip untill the end of the line
-                    Ok(while self.peek() != '\n' && !self.is_at_end() {
+                    while self.peek() != '\n' && !self.is_at_end() {
                         self.advance();
-                    })
+                    }
+                    Ok(())
                 } else if self.match_to('*') {
                     // Multiline comment, skip untill the next */
                     while self.peek() != '*' && self.peek_next() != '/' && !self.is_at_end() {
@@ -129,7 +166,10 @@ impl Scanner {
                 }
             }
 
-            '\n' => Ok(self.line += 1),
+            '\n' => {
+                self.line += 1;
+                Ok(())
+            }
             ' ' | '\r' | '\t' => Ok(()),
 
             // Literals
@@ -183,7 +223,7 @@ impl Scanner {
         ))
     }
 
-    fn string(&mut self) -> Result<(), RuloxError> {
+    fn string(&mut self) -> RuloxResult<()> {
         while self.peek() != '"' && !self.is_at_end() {
             if self.peek() == '\n' {
                 self.line += 1;
@@ -239,8 +279,7 @@ impl Scanner {
     fn add_token(&mut self, token: TokenType) {
         let text: &str = &self.source[self.start..self.current];
 
-        self.tokens
-            .push(Token::new(token, text.to_string(), self.line))
+        self.tokens.push(Token::new(token, text, self.line))
     }
 
     fn is_at_end(&self) -> bool {

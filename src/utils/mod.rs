@@ -1,42 +1,44 @@
 use std::{
     fs,
     io::{self, Write},
+    process,
     // process,
 };
 
 use crate::{
     expression::Expr,
     rulox::Rulox,
-    rulox_error::{Report, RuloxError},
+    rulox_error::{Report, RuloxResult},
 };
 
-pub fn run_file(filename: String) -> Result<(), RuloxError> {
-    let content = fs::read_to_string(filename).unwrap();
+pub fn run_file(filename: String) -> RuloxResult<()> {
+    let content = match fs::read_to_string(filename) {
+        Ok(content) => content,
+        Err(err) => {
+            println!("Error: {}", err);
+            process::exit(64);
+        }
+    };
+
     let rulox = Rulox::from(content);
 
-    // match rulox.run() {
-    //     Ok(_) => {}
-    //     Err(err) => {
-    //         err.report();
-    //         match err {
-    //             RuloxError::RuntimeError { .. } => {
-    //                 process::exit(70);
-    //             }
-    //             _ => {}
-    //         }
-    //     }
-    // }
     rulox.run()
 }
 
-pub fn run_prompt() -> Result<(), RuloxError> {
+pub fn run_prompt() -> RuloxResult<()> {
     let rulox = Rulox::new();
     loop {
         print!("rulox> ");
         io::stdout().flush().unwrap();
         let mut input = String::new();
 
-        let bytes = io::stdin().read_line(&mut input).unwrap();
+        let bytes = match io::stdin().read_line(&mut input) {
+            Ok(bytes) => bytes,
+            Err(err) => {
+                println!("Error: {}", err);
+                process::exit(64);
+            }
+        };
 
         if bytes == 0 || input.trim() == "quit" {
             break;

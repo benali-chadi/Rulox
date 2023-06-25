@@ -1,10 +1,9 @@
 use crate::{
     parser::Parser,
-    rulox_error::RuloxError,
+    rulox_error::{Report, RuloxResult},
     scanner::{token::TokenType, Scanner},
-    utils,
+    statement::Stmt,
 };
-use colored::*;
 
 pub struct Rulox {
     source: String,
@@ -21,54 +20,42 @@ impl Rulox {
         Self { source }
     }
 
-    pub fn run(&self) -> Result<(), RuloxError> {
+    pub fn run(&self) -> RuloxResult<()> {
         let mut scanner = Scanner::new(&self.source);
         let tokens = scanner.scan_tokens()?;
 
-        println!("{}", "Tokens".bold().blue());
-        for token in &tokens {
-            println!("{token}");
-        }
-
         let mut parser = Parser::new(&tokens);
-        let expr = parser.parse()?;
+        let statements = parser.parse()?;
 
-        println!("{}", "ASTree".bold().green());
-        utils::print_tree(&expr);
-
-        println!("{}", "Result".bold().yellow());
-        let literal = expr.interpret()?;
-
-        println!(
-            "{}",
-            Rulox::literal_token_type_to_string(literal.value.token_type)
-        );
+        Rulox::interpret(statements);
 
         Ok(())
     }
 
-    pub fn prompt_run(&self, input: String) -> Result<(), RuloxError> {
+    pub fn prompt_run(&self, input: String) -> RuloxResult<()> {
         let mut scanner = Scanner::new(&input);
         let tokens = scanner.scan_tokens()?;
-        println!("{}", "Tokens".bold().blue());
         for token in &tokens {
-            println!("{token}");
+            println!("{token:?}");
         }
+
         let mut parser = Parser::new(&tokens);
-        let expr = parser.parse()?;
+        let statements = parser.parse()?;
 
-        println!("{}", "ASTree".bold().green());
-        utils::print_tree(&expr);
-
-        println!("{}", "Result".bold().yellow());
-        let literal = expr.interpret()?;
-
-        println!(
-            "{}",
-            Rulox::literal_token_type_to_string(literal.value.token_type)
-        );
+        Rulox::interpret(statements);
 
         Ok(())
+    }
+
+    pub fn interpret(statements: Vec<Stmt>) {
+        for statement in statements {
+            match statement.execute() {
+                Ok(_) => {}
+                Err(err) => {
+                    err.report();
+                }
+            }
+        }
     }
 
     pub fn literal_token_type_to_string(token_type: TokenType) -> String {
@@ -83,5 +70,11 @@ impl Rulox {
 
             _ => "nil".to_string(),
         }
+    }
+}
+
+impl Default for Rulox {
+    fn default() -> Self {
+        Self::new()
     }
 }
