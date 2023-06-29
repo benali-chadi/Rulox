@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use crate::expression::Expr;
 
-use super::StmtTrait;
+use super::{environment::Environment, StmtTrait};
 
 pub struct Expression {
     pub expression: Expr,
@@ -21,8 +21,8 @@ impl Display for Expression {
 }
 
 impl StmtTrait for Expression {
-    fn execute(&self) -> Result<(), crate::rulox_error::RuloxError> {
-        self.expression.execute()?;
+    fn execute(&self, env: &mut Environment) -> Result<(), crate::rulox_error::RuloxError> {
+        self.expression.execute(env)?;
         Ok(())
     }
 }

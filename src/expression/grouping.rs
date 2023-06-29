@@ -1,6 +1,9 @@
 use std::fmt::Display;
 
-use crate::{expression::utils, rulox_error::RuloxResult};
+use crate::{
+    expression::utils, rulox_error::RuloxResult, scanner::token::Token,
+    statement::environment::Environment,
+};
 
 use super::{Expr, ExprTrait, Literal};
 
@@ -21,7 +24,11 @@ impl Display for Grouping {
 }
 
 impl ExprTrait for Grouping {
-    fn execute(&self) -> RuloxResult<Literal> {
-        self.expression.execute()
+    fn execute(&self, env: &mut Environment) -> RuloxResult<Literal> {
+        self.expression.execute(env)
+    }
+
+    fn get_token(&self) -> &Token {
+        self.expression.expression.get_token()
     }
 }

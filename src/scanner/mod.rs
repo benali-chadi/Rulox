@@ -100,11 +100,6 @@ impl Scanner {
                     TokenType::Bang
                 });
                 Ok(())
-                // Ok(self.add_token(if matches {
-                //     TokenType::BangEqual
-                // } else {
-                //     TokenType::Bang
-                // }))
             }
 
             '=' => {
@@ -183,7 +178,6 @@ impl Scanner {
                     self.identifier_or_keyword();
                     Ok(())
                 } else {
-                    // error_reporintg::error(self.line, "Unexpected character.".to_string())
                     Err(RuloxError::SyntaxError {
                         token: None,
                         line: self.line,
@@ -224,6 +218,8 @@ impl Scanner {
     }
 
     fn string(&mut self) -> RuloxResult<()> {
+        let initial_line = self.line - 1;
+
         while self.peek() != '"' && !self.is_at_end() {
             if self.peek() == '\n' {
                 self.line += 1;
@@ -234,7 +230,7 @@ impl Scanner {
         if self.is_at_end() {
             return Err(RuloxError::SyntaxError {
                 token: None,
-                line: self.line - 1,
+                line: initial_line,
                 message: "Unterminated string.".to_string(),
             });
         }

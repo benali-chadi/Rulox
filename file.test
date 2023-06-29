@@ -1,3 +1,13 @@
-print "one";
-print true
-print 2 + 1
+var a = 5;
+var b = "str";
+var c = "okok";
+var d = 43;
+
+/*
+   print 2 + 1
+   print ok;
+*/
+
+print a + d;
+print "one" + " " + b; // inline comment
+print true + c; 

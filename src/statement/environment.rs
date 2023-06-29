@@ -12,11 +12,6 @@ pub struct Environment {
 }
 
 impl Environment {
-    // pub fn new() -> Self {
-    //     Self {
-    //         values: HashMap::new(),
-    //     }
-    // }
     pub fn from(values: HashMap<String, Literal>) -> Self {
         Self { values }
     }
@@ -33,5 +28,23 @@ impl Environment {
                 message: format!("Undefined variable '{}'.", name.lexeme),
             }),
         }
+    }
+
+    pub fn assign(&mut self, name: Token, value: Literal) -> RuloxResult<()> {
+        // if self.values.contains_key(&name.lexeme) {
+        //     self.values.insert(name.lexeme, value);
+        //     return Ok(());
+        // }
+        if let std::collections::hash_map::Entry::Occupied(mut e) =
+            self.values.entry(name.lexeme.to_string())
+        {
+            e.insert(value);
+            return Ok(());
+        }
+
+        Err(RuloxError::RuntimeError {
+            line: name.line,
+            message: format!("Undefined variable '{}'.", name.lexeme),
+        })
     }
 }

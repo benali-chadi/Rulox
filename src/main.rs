@@ -5,19 +5,16 @@ use std::{env, process};
 
 use rulox::utils;
 
-use rulox::rulox_error::RuloxError;
-
-fn main() -> Result<(), RuloxError> {
+fn main() {
     env_logger::init();
     info!("starting up!");
 
     match env::args().len() {
         len @ 1..=2 => {
             if len == 1 {
-                // let _ = utils::run_prompt();
-                utils::run_prompt()
+                utils::run_prompt();
             } else {
-                utils::run_file(env::args().nth(1).unwrap())
+                utils::run_file(env::args().nth(1).unwrap());
             }
         }
         _ => {

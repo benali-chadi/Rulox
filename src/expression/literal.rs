@@ -3,6 +3,7 @@ use std::fmt::Display;
 use crate::{
     rulox_error::RuloxResult,
     scanner::token::{Token, TokenType},
+    statement::environment::Environment,
 };
 
 use super::ExprTrait;
@@ -43,7 +44,11 @@ impl Display for Literal {
 }
 
 impl ExprTrait for Literal {
-    fn execute(&self) -> RuloxResult<Literal> {
+    fn execute(&self, _env: &mut Environment) -> RuloxResult<Literal> {
         Ok(self.clone())
+    }
+
+    fn get_token(&self) -> &Token {
+        &self.value
     }
 }

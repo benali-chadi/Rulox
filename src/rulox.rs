@@ -2,60 +2,71 @@ use crate::{
     parser::Parser,
     rulox_error::{Report, RuloxResult},
     scanner::{token::TokenType, Scanner},
-    statement::Stmt,
+    statement::{environment::Environment, Stmt},
 };
 
 pub struct Rulox {
     source: String,
+    environment: Environment,
 }
 
 impl Rulox {
     pub fn new() -> Self {
         Self {
             source: String::new(),
+            environment: Environment::default(),
         }
     }
 
-    pub fn from(source: String) -> Self {
-        Self { source }
+    pub fn from(source: String, environment: Environment) -> Self {
+        Self {
+            source,
+            environment,
+        }
     }
 
-    pub fn run(&self) -> RuloxResult<()> {
+    pub fn run(&mut self) -> RuloxResult<()> {
         let mut scanner = Scanner::new(&self.source);
         let tokens = scanner.scan_tokens()?;
+        // for token in &tokens {
+        //     println!("{token:?}");
+        // }
 
         let mut parser = Parser::new(&tokens);
         let statements = parser.parse()?;
 
-        Rulox::interpret(statements);
+        self.interpret(statements)
 
-        Ok(())
+        // Ok(())
     }
 
-    pub fn prompt_run(&self, input: String) -> RuloxResult<()> {
+    pub fn prompt_run(&mut self, input: String) -> RuloxResult<()> {
         let mut scanner = Scanner::new(&input);
         let tokens = scanner.scan_tokens()?;
-        for token in &tokens {
-            println!("{token:?}");
-        }
+        // for token in &tokens {
+        //     println!("{token:?}");
+        // }
 
         let mut parser = Parser::new(&tokens);
         let statements = parser.parse()?;
 
-        Rulox::interpret(statements);
+        self.interpret(statements)
 
-        Ok(())
+        // Ok(())
     }
 
-    pub fn interpret(statements: Vec<Stmt>) {
-        for statement in statements {
-            match statement.execute() {
-                Ok(_) => {}
-                Err(err) => {
-                    err.report();
-                }
-            }
+    fn interpret(&mut self, statements: Vec<Stmt>) -> RuloxResult<()> {
+        for statement in &statements {
+            // match statement.execute(&mut self.environment) {
+            //     Ok(_) => {}
+            //     Err(err) => {
+            //         err.report();
+            //     }
+            // }
+            statement.execute(&mut self.environment)?;
         }
+
+        Ok(())
     }
 
     pub fn literal_token_type_to_string(token_type: TokenType) -> String {

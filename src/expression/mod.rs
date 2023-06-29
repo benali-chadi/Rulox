@@ -5,8 +5,8 @@ pub use grouping::Grouping;
 pub use literal::Literal;
 pub use unary::Unary;
 
-use crate::rulox_error::RuloxResult;
-mod assign;
+use crate::{rulox_error::RuloxResult, scanner::token::Token, statement::environment::Environment};
+pub mod assign;
 mod binary;
 mod grouping;
 mod literal;
@@ -15,19 +15,20 @@ mod utils;
 pub mod variable;
 
 pub trait ExprTrait: Display {
-    fn execute(&self) -> RuloxResult<Literal>;
+    fn execute(&self, env: &mut Environment) -> RuloxResult<Literal>;
+    fn get_token(&self) -> &Token;
 }
 
 pub struct Expr {
-    expression: Box<dyn ExprTrait>,
+    pub expression: Box<dyn ExprTrait>,
 }
 
 impl Expr {
     pub fn new(expression: Box<dyn ExprTrait>) -> Self {
         Self { expression }
     }
-    pub fn execute(&self) -> RuloxResult<Literal> {
-        self.expression.execute()
+    pub fn execute(&self, env: &mut Environment) -> RuloxResult<Literal> {
+        self.expression.execute(env)
     }
 }
 

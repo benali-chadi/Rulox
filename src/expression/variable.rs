@@ -1,12 +1,10 @@
 use std::fmt::Display;
 
-use crate::{
-    rulox_error::RuloxResult,
-    scanner::token::{Token, TokenType},
-};
+use crate::{rulox_error::RuloxResult, scanner::token::Token, statement::environment::Environment};
 
 use super::{ExprTrait, Literal};
 
+#[derive(Debug)]
 pub struct Variable {
     name: Token,
 }
@@ -24,12 +22,17 @@ impl Display for Variable {
 }
 
 impl ExprTrait for Variable {
-    fn execute(&self) -> RuloxResult<Literal> {
-        let token = Token::new(
-            TokenType::String(self.name.lexeme.to_string()),
-            &self.name.lexeme,
-            self.name.line,
-        );
-        Ok(Literal::new(token))
+    fn execute(&self, env: &mut Environment) -> RuloxResult<Literal> {
+        // let token = Token::new(
+        //     TokenType::String(self.name.lexeme.to_string()),
+        //     &self.name.lexeme,
+        //     self.name.line,
+        // );
+        // Ok(Literal::new(token))
+        env.get(self.name.clone()).cloned()
+    }
+
+    fn get_token(&self) -> &Token {
+        &self.name
     }
 }

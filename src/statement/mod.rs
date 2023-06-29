@@ -2,6 +2,8 @@ use std::fmt::Display;
 
 use crate::rulox_error::RuloxResult;
 
+use self::environment::Environment;
+
 pub mod block;
 pub mod environment;
 pub mod expression;
@@ -9,11 +11,11 @@ pub mod print;
 pub mod var;
 
 pub trait StmtTrait: Display {
-    fn execute(&self) -> RuloxResult<()>;
+    fn execute(&self, env: &mut Environment) -> RuloxResult<()>;
 }
 
 pub struct Stmt {
-    statement: Box<dyn StmtTrait>,
+    pub statement: Box<dyn StmtTrait>,
 }
 
 impl Stmt {
@@ -21,8 +23,8 @@ impl Stmt {
         Self { statement }
     }
 
-    pub fn execute(&self) -> RuloxResult<()> {
-        self.statement.execute()
+    pub fn execute(&self, env: &mut Environment) -> RuloxResult<()> {
+        self.statement.execute(env)
     }
 }
 

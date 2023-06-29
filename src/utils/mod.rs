@@ -2,31 +2,39 @@ use std::{
     fs,
     io::{self, Write},
     process,
-    // process,
 };
 
 use crate::{
     expression::Expr,
     rulox::Rulox,
-    rulox_error::{Report, RuloxResult},
+    rulox_error::{Report, RuloxError},
+    statement::environment::Environment,
 };
 
-pub fn run_file(filename: String) -> RuloxResult<()> {
+pub fn run_file(filename: String) {
     let content = match fs::read_to_string(filename) {
         Ok(content) => content,
         Err(err) => {
-            println!("Error: {}", err);
+            println!("Error {}", err);
             process::exit(64);
         }
     };
 
-    let rulox = Rulox::from(content);
+    let mut rulox = Rulox::from(content, Environment::default());
 
-    rulox.run()
+    match rulox.run() {
+        Err(err) => {
+            if let RuloxError::SyntaxError { .. } | RuloxError::RuntimeError { .. } = err {
+                err.report();
+            };
+            process::exit(64);
+        }
+        _ => {}
+    }
 }
 
-pub fn run_prompt() -> RuloxResult<()> {
-    let rulox = Rulox::new();
+pub fn run_prompt() {
+    let mut rulox = Rulox::new();
     loop {
         print!("rulox> ");
         io::stdout().flush().unwrap();
@@ -35,7 +43,7 @@ pub fn run_prompt() -> RuloxResult<()> {
         let bytes = match io::stdin().read_line(&mut input) {
             Ok(bytes) => bytes,
             Err(err) => {
-                println!("Error: {}", err);
+                println!("{}", err);
                 process::exit(64);
             }
         };
@@ -50,10 +58,7 @@ pub fn run_prompt() -> RuloxResult<()> {
                 err.report();
             }
         }
-        // rulox.prompt_run(input)?
     }
-
-    Ok(())
 }
 
 pub fn print_tree(expression: &Expr) {

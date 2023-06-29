@@ -5,6 +5,7 @@ use crate::{
     rulox::Rulox,
     rulox_error::{RuloxError, RuloxResult},
     scanner::token::{Token, TokenType},
+    statement::environment::Environment,
 };
 
 use super::{Expr, ExprTrait, Literal};
@@ -36,9 +37,9 @@ impl Display for Binary {
 }
 
 impl ExprTrait for Binary {
-    fn execute(&self) -> RuloxResult<Literal> {
-        let left = self.left.execute()?;
-        let right = self.right.execute()?;
+    fn execute(&self, env: &mut Environment) -> RuloxResult<Literal> {
+        let left = self.left.execute(env)?;
+        let right = self.right.execute(env)?;
 
         match self.operator.token_type {
             TokenType::Minus => match (left.value.token_type, right.value.token_type) {
@@ -385,5 +386,9 @@ impl ExprTrait for Binary {
                 message: "Binary Operator not supported".to_string(),
             }),
         }
+    }
+
+    fn get_token(&self) -> &Token {
+        &self.operator
     }
 }

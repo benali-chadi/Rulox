@@ -1,8 +1,12 @@
 use std::fmt::Display;
 
-use crate::{expression::Expr, rulox_error::RuloxResult, scanner::token::Token};
+use crate::{
+    expression::{Expr, Literal},
+    rulox_error::RuloxResult,
+    scanner::token::{Token, TokenType},
+};
 
-use super::StmtTrait;
+use super::{environment::Environment, StmtTrait};
 
 pub struct Var {
     pub name: Token,
@@ -28,9 +32,22 @@ impl Display for Var {
         )
     }
 }
-// TODO: Implement the Stmt Trait
+
 impl StmtTrait for Var {
-    fn execute(&self) -> RuloxResult<()> {
-        Ok(())
+    fn execute(&self, env: &mut Environment) -> RuloxResult<()> {
+        match &self.initializer {
+            Some(expr) => {
+                let value = expr.execute(env)?;
+                env.define(&self.name.lexeme, value);
+                Ok(())
+            }
+            None => {
+                env.define(
+                    &self.name.lexeme,
+                    Literal::new(Token::new(TokenType::Nil, "nil", 1)),
+                );
+                Ok(())
+            }
+        }
     }
 }

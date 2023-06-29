@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use crate::{expression::Expr, rulox_error::RuloxResult};
 
-use super::StmtTrait;
+use super::{environment::Environment, StmtTrait};
 
 pub struct Print {
     pub expression: Expr,
@@ -23,8 +23,8 @@ impl Display for Print {
 // TODO: Implement the Stmt Trait
 
 impl StmtTrait for Print {
-    fn execute(&self) -> RuloxResult<()> {
-        let literal = self.expression.execute()?;
+    fn execute(&self, env: &mut Environment) -> RuloxResult<()> {
+        let literal = self.expression.execute(env)?;
         println!("{}", literal);
         Ok(())
     }

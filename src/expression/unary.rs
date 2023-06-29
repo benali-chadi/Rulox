@@ -4,6 +4,7 @@ use crate::{
     expression::utils,
     rulox_error::{RuloxError, RuloxResult},
     scanner::token::{Token, TokenType},
+    statement::environment::Environment,
 };
 
 use super::{Expr, ExprTrait, Literal};
@@ -30,8 +31,8 @@ impl Display for Unary {
 }
 
 impl ExprTrait for Unary {
-    fn execute(&self) -> RuloxResult<Literal> {
-        let literal = self.right.execute()?;
+    fn execute(&self, env: &mut Environment) -> RuloxResult<Literal> {
+        let literal = self.right.execute(env)?;
 
         match self.operator.token_type {
             TokenType::Minus => match literal.value.token_type {
@@ -64,5 +65,9 @@ impl ExprTrait for Unary {
                 message: "unary operator not supported".to_string(),
             }),
         }
+    }
+
+    fn get_token(&self) -> &Token {
+        &self.operator
     }
 }

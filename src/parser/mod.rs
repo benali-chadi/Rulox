@@ -1,6 +1,6 @@
 use crate::{
-    expression::{variable::Variable, *},
-    rulox_error::{RuloxError, RuloxResult},
+    expression::{assign::Assign, variable::Variable, *},
+    rulox_error::{Report, RuloxError, RuloxResult},
     scanner::token::{Token, TokenType},
     statement::{expression::Expression, print::Print, var::Var, Stmt},
 };
@@ -20,25 +20,42 @@ impl Parser {
 
     pub fn parse(&mut self) -> RuloxResult<Vec<Stmt>> {
         let mut statements = Vec::new();
+        let mut stop = false;
 
         while !self.is_at_end() {
-            // TODO: Match the return of declaration()
-            statements.push(self.declaration()?);
+            match self.declaration() {
+                Ok(stmt) => statements.push(stmt),
+                Err(err) => {
+                    stop = true;
+                    err.report()
+                }
+            }
         }
 
-        Ok(statements)
+        if !stop {
+            Ok(statements)
+        } else {
+            Err(RuloxError::ParseError {
+                token: None,
+                line: 0,
+                message: String::new(),
+            })
+        }
     }
 
     fn declaration(&mut self) -> RuloxResult<Stmt> {
         if self.matches(&[TokenType::Var]) {
-            self.var_declaration()?;
+            return self.var_declaration();
         }
 
         self.statement()
     }
 
     fn var_declaration(&mut self) -> RuloxResult<Stmt> {
-        let name = self.consume(TokenType::Var, "Expect variable name.")?;
+        let name = self.consume(
+            TokenType::Identifier(String::new()),
+            "Expect variable name.",
+        )?;
 
         let mut initializer: Option<Expr> = None;
         if self.matches(&[TokenType::Equal]) {
@@ -74,7 +91,37 @@ impl Parser {
     }
 
     fn expression(&mut self) -> RuloxResult<Expr> {
-        self.equality()
+        // self.equality()
+        self.assignment()
+    }
+
+    fn assignment(&mut self) -> RuloxResult<Expr> {
+        let expr = self.equality()?;
+
+        if self.matches(&[TokenType::Equal]) {
+            // let equals = self.previous();
+            let value = self.assignment()?;
+
+            // Check if the expression is a Variable, by checking if its token_type is an identifier
+            match &expr.expression.get_token().token_type {
+                TokenType::Identifier(_) => {
+                    return Ok(Expr::new(Box::new(Assign::new(
+                        expr.expression.get_token().clone(),
+                        value,
+                    ))))
+                }
+
+                _ => {
+                    //error method here
+                    return Err(RuloxError::RuntimeError {
+                        line: 1,
+                        message: "Invalid assignment target".to_string(),
+                    });
+                }
+            };
+        }
+
+        Ok(expr)
     }
 
     fn equality(&mut self) -> RuloxResult<Expr> {
@@ -182,7 +229,7 @@ impl Parser {
 
         Err(RuloxError::ParseError {
             token: Some(self.peek().clone()),
-            line: self.peek().line - 1,
+            line: self.peek().line,
             message: msg.to_string(),
         })
     }
