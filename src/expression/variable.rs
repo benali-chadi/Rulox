@@ -29,7 +29,7 @@ impl ExprTrait for Variable {
         //     self.name.line,
         // );
         // Ok(Literal::new(token))
-        env.get(self.name.clone()).cloned()
+        env.get(&self.name).cloned()
     }
 
     fn get_token(&self) -> &Token {

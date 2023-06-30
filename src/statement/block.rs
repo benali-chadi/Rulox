@@ -1,6 +1,8 @@
 use std::fmt::Display;
 
-use super::Stmt;
+use crate::rulox_error::RuloxResult;
+
+use super::{environment::Environment, Stmt, StmtTrait};
 
 pub struct Block {
     pub statements: Vec<Stmt>,
@@ -18,4 +20,14 @@ impl Display for Block {
     }
 }
 
-// TODO: Implement the Stmt Trait
+impl StmtTrait for Block {
+    fn execute(&self, env: &mut Environment) -> RuloxResult<()> {
+        let mut current_env = Environment::from(Some(Box::new(env.clone())));
+
+        for stmt in &self.statements {
+            stmt.execute(&mut current_env)?;
+        }
+
+        Ok(())
+    }
+}

@@ -28,7 +28,7 @@ impl ExprTrait for Assign {
     fn execute(&self, env: &mut Environment) -> RuloxResult<super::Literal> {
         let value = self.value.execute(env)?;
 
-        env.assign(self.name.clone(), value.clone())?;
+        env.assign(&self.name, &value)?;
 
         Ok(value)
     }

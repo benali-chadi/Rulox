@@ -2,7 +2,7 @@ use crate::{
     expression::{assign::Assign, variable::Variable, *},
     rulox_error::{Report, RuloxError, RuloxResult},
     scanner::token::{Token, TokenType},
-    statement::{expression::Expression, print::Print, var::Var, Stmt},
+    statement::{block::Block, expression::Expression, print::Print, var::Var, Stmt},
 };
 
 pub struct Parser {
@@ -71,8 +71,23 @@ impl Parser {
         if self.matches(&[TokenType::Print]) {
             return self.print_statement();
         }
+        if self.matches(&[TokenType::LeftBrace]) {
+            return Ok(Stmt::new(Box::new(Block::new(self.block()?))));
+        }
 
         self.expression_statement()
+    }
+
+    fn block(&mut self) -> RuloxResult<Vec<Stmt>> {
+        let mut statements = vec![];
+
+        while !self.check(&TokenType::RightBrace) && !self.is_at_end() {
+            statements.push(self.declaration()?);
+        }
+
+        self.consume(TokenType::RightBrace, "Expect '}' after block.")?;
+
+        Ok(statements)
     }
 
     fn expression_statement(&mut self) -> RuloxResult<Stmt> {

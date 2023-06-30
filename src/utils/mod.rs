@@ -22,14 +22,11 @@ pub fn run_file(filename: String) {
 
     let mut rulox = Rulox::from(content, Environment::default());
 
-    match rulox.run() {
-        Err(err) => {
-            if let RuloxError::SyntaxError { .. } | RuloxError::RuntimeError { .. } = err {
-                err.report();
-            };
-            process::exit(64);
-        }
-        _ => {}
+    if let Err(err) = rulox.run() {
+        if let RuloxError::SyntaxError { .. } | RuloxError::RuntimeError { .. } = err {
+            err.report();
+        };
+        process::exit(64);
     }
 }
 
@@ -40,23 +37,33 @@ pub fn run_prompt() {
         io::stdout().flush().unwrap();
         let mut input = String::new();
 
-        let bytes = match io::stdin().read_line(&mut input) {
-            Ok(bytes) => bytes,
+        match io::stdin().read_line(&mut input) {
+            Ok(bytes) => {
+                if bytes == 0 {
+                    break;
+                }
+            }
             Err(err) => {
                 println!("{}", err);
                 process::exit(64);
             }
         };
 
-        if bytes == 0 || input.trim() == "quit" {
-            break;
-        }
-
-        match rulox.prompt_run(input) {
-            Ok(_) => {}
-            Err(err) => {
-                err.report();
+        match input.trim() {
+            "quit" => {
+                break;
             }
+            "clear" => {
+                if let Err(err) = process::Command::new("clear").spawn() {
+                    println!("{err}")
+                }
+            }
+            _ => match rulox.prompt_run(input) {
+                Ok(_) => {}
+                Err(err) => {
+                    err.report();
+                }
+            },
         }
     }
 }

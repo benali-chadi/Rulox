@@ -1,6 +1,6 @@
 use crate::{
     parser::Parser,
-    rulox_error::{Report, RuloxResult},
+    rulox_error::RuloxResult,
     scanner::{token::TokenType, Scanner},
     statement::{environment::Environment, Stmt},
 };
@@ -36,8 +36,6 @@ impl Rulox {
         let statements = parser.parse()?;
 
         self.interpret(statements)
-
-        // Ok(())
     }
 
     pub fn prompt_run(&mut self, input: String) -> RuloxResult<()> {
@@ -51,18 +49,10 @@ impl Rulox {
         let statements = parser.parse()?;
 
         self.interpret(statements)
-
-        // Ok(())
     }
 
     fn interpret(&mut self, statements: Vec<Stmt>) -> RuloxResult<()> {
         for statement in &statements {
-            // match statement.execute(&mut self.environment) {
-            //     Ok(_) => {}
-            //     Err(err) => {
-            //         err.report();
-            //     }
-            // }
             statement.execute(&mut self.environment)?;
         }
 
