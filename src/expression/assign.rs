@@ -1,9 +1,6 @@
 use std::fmt::Display;
 
-use crate::{
-    expression::utils::parenthisize, rulox_error::RuloxResult, scanner::token::Token,
-    statement::environment::Environment,
-};
+use crate::{rulox_error::RuloxResult, scanner::token::Token, statement::environment::Environment};
 
 use super::{Expr, ExprTrait};
 
@@ -20,7 +17,8 @@ impl Assign {
 
 impl Display for Assign {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", parenthisize(&self.name.lexeme, &[&self.value]))
+        // write!(f, "{}", parenthisize(&self.name.lexeme, &[&self.value]))
+        write!(f, "{}", self.value)
     }
 }
 

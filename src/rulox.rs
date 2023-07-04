@@ -1,3 +1,5 @@
+use colored::Colorize;
+
 use crate::{
     parser::Parser,
     rulox_error::RuloxResult,
@@ -35,7 +37,7 @@ impl Rulox {
         let mut parser = Parser::new(&tokens);
         let statements = parser.parse()?;
 
-        self.interpret(statements)
+        self.interpret(statements, false)
     }
 
     pub fn prompt_run(&mut self, input: String) -> RuloxResult<()> {
@@ -48,12 +50,19 @@ impl Rulox {
         let mut parser = Parser::new(&tokens);
         let statements = parser.parse()?;
 
-        self.interpret(statements)
+        self.interpret(statements, true)
     }
 
-    fn interpret(&mut self, statements: Vec<Stmt>) -> RuloxResult<()> {
+    fn interpret(&mut self, statements: Vec<Stmt>, is_prompt: bool) -> RuloxResult<()> {
         for statement in &statements {
             statement.execute(&mut self.environment)?;
+            if is_prompt {
+                println!(
+                    "{}: {}",
+                    "expression result".bright_yellow().dimmed(),
+                    statement
+                );
+            }
         }
 
         Ok(())

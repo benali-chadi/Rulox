@@ -23,8 +23,7 @@ impl Display for Var {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "name: {} value: {}",
-            self.name,
+            "{}",
             match &self.initializer {
                 Some(expr) => expr.to_string(),
                 None => "nil".to_string(),

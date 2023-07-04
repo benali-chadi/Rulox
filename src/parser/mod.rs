@@ -68,14 +68,17 @@ impl Parser {
     }
 
     fn statement(&mut self) -> RuloxResult<Stmt> {
-        if self.matches(&[TokenType::Print]) {
-            return self.print_statement();
+        match self.peek().token_type {
+            TokenType::Print => {
+                self.advance();
+                return self.print_statement();
+            }
+            TokenType::LeftBrace => {
+                self.advance();
+                return Ok(Stmt::new(Box::new(Block::new(self.block()?))));
+            }
+            _ => self.expression_statement(),
         }
-        if self.matches(&[TokenType::LeftBrace]) {
-            return Ok(Stmt::new(Box::new(Block::new(self.block()?))));
-        }
-
-        self.expression_statement()
     }
 
     fn block(&mut self) -> RuloxResult<Vec<Stmt>> {

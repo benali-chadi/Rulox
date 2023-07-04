@@ -23,12 +23,6 @@ impl Display for Variable {
 
 impl ExprTrait for Variable {
     fn execute(&self, env: &mut Environment) -> RuloxResult<Literal> {
-        // let token = Token::new(
-        //     TokenType::String(self.name.lexeme.to_string()),
-        //     &self.name.lexeme,
-        //     self.name.line,
-        // );
-        // Ok(Literal::new(token))
         env.get(&self.name).cloned()
     }
 

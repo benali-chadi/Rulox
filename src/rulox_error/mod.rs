@@ -1,4 +1,7 @@
-use std::fmt::Debug;
+use std::{
+    error::Error,
+    fmt::{Debug, Display},
+};
 
 use crate::scanner::token::{Token, TokenType};
 use colored::*;
@@ -63,6 +66,15 @@ impl Debug for RuloxError {
         Ok(())
     }
 }
+
+impl Display for RuloxError {
+    fn fmt(&self, _f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.report();
+        Ok(())
+    }
+}
+
+impl Error for RuloxError {}
 
 fn error(line: usize, message: String, err_type: String) {
     report(line, message, err_type, 0);
