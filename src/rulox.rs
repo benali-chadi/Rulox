@@ -1,29 +1,31 @@
+use std::{cell::RefCell, rc::Rc};
+
 use colored::Colorize;
 
 use crate::{
     parser::Parser,
     rulox_error::RuloxResult,
     scanner::{token::TokenType, Scanner},
-    statement::{environment::Environment, Stmt},
+    statement::{Environment, Stmt},
 };
 
 pub struct Rulox {
     source: String,
-    environment: Environment,
+    environment: Rc<RefCell<Environment>>,
 }
 
 impl Rulox {
     pub fn new() -> Self {
         Self {
             source: String::new(),
-            environment: Environment::default(),
+            environment: Rc::new(RefCell::new(Environment::default())),
         }
     }
 
-    pub fn from(source: String, environment: Environment) -> Self {
+    pub fn from(source: String) -> Self {
         Self {
             source,
-            environment,
+            environment: Rc::new(RefCell::new(Environment::default())),
         }
     }
 
@@ -55,7 +57,7 @@ impl Rulox {
 
     fn interpret(&mut self, statements: Vec<Stmt>, is_prompt: bool) -> RuloxResult<()> {
         for statement in &statements {
-            statement.execute(&mut self.environment)?;
+            statement.execute(Rc::clone(&self.environment))?;
             if is_prompt {
                 println!(
                     "{}: {}",

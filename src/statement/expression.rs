@@ -1,8 +1,8 @@
-use std::fmt::Display;
+use std::{cell::RefCell, fmt::Display, rc::Rc};
 
 use crate::expression::Expr;
 
-use super::{environment::Environment, StmtTrait};
+use super::{Environment, StmtTrait};
 
 pub struct Expression {
     pub expression: Expr,
@@ -21,8 +21,8 @@ impl Display for Expression {
 }
 
 impl StmtTrait for Expression {
-    fn execute(&self, env: &mut Environment) -> Result<(), crate::rulox_error::RuloxError> {
-        self.expression.execute(env)?;
+    fn execute(&self, env: Rc<RefCell<Environment>>) -> Result<(), crate::rulox_error::RuloxError> {
+        self.expression.execute(Rc::clone(&env))?;
         Ok(())
     }
 }

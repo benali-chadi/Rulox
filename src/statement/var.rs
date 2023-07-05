@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use std::{cell::RefCell, fmt::Display, rc::Rc};
 
 use crate::{
     expression::{Expr, Literal},
@@ -6,7 +6,7 @@ use crate::{
     scanner::token::{Token, TokenType},
 };
 
-use super::{environment::Environment, StmtTrait};
+use super::{Environment, StmtTrait};
 
 pub struct Var {
     pub name: Token,
@@ -33,15 +33,16 @@ impl Display for Var {
 }
 
 impl StmtTrait for Var {
-    fn execute(&self, env: &mut Environment) -> RuloxResult<()> {
+    fn execute(&self, env: Rc<RefCell<Environment>>) -> RuloxResult<()> {
         match &self.initializer {
             Some(expr) => {
-                let value = expr.execute(env)?;
-                env.define(&self.name.lexeme, value);
+                let value = expr.execute(Rc::clone(&env))?;
+                // env.borrow_mut().define(&self.name.lexeme, value);
+                env.borrow_mut().define(&self.name.lexeme, value);
                 Ok(())
             }
             None => {
-                env.define(
+                env.borrow_mut().define(
                     &self.name.lexeme,
                     Literal::new(Token::new(TokenType::Nil, "nil", 1)),
                 );

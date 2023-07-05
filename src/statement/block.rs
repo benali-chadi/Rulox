@@ -1,8 +1,8 @@
-use std::fmt::Display;
+use std::{cell::RefCell, fmt::Display, rc::Rc};
 
 use crate::rulox_error::RuloxResult;
 
-use super::{environment::Environment, Stmt, StmtTrait};
+use super::{Environment, Stmt, StmtTrait};
 
 pub struct Block {
     pub statements: Vec<Stmt>,
@@ -25,11 +25,11 @@ impl Display for Block {
 }
 
 impl StmtTrait for Block {
-    fn execute(&self, env: &mut Environment) -> RuloxResult<()> {
-        let mut current_env = Environment::from(Some(Box::new(env.clone())));
+    fn execute(&self, env: Rc<RefCell<Environment>>) -> RuloxResult<()> {
+        let current_env = Rc::new(RefCell::new(Environment::from(Some(Rc::clone(&env)))));
 
         for stmt in &self.statements {
-            stmt.execute(&mut current_env)?;
+            stmt.execute(Rc::clone(&current_env))?;
         }
 
         Ok(())

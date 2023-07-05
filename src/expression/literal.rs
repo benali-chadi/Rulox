@@ -1,9 +1,9 @@
-use std::fmt::Display;
+use std::{cell::RefCell, fmt::Display, rc::Rc};
 
 use crate::{
     rulox_error::RuloxResult,
     scanner::token::{Token, TokenType},
-    statement::environment::Environment,
+    statement::Environment,
 };
 
 use super::ExprTrait;
@@ -26,7 +26,7 @@ impl Literal {
         Self { value }
     }
 
-    pub fn is_truthy(token_type: TokenType) -> bool {
+    pub fn is_truthy(token_type: &TokenType) -> bool {
         !matches!(token_type, TokenType::False | TokenType::Nil)
     }
 }
@@ -44,7 +44,7 @@ impl Display for Literal {
 }
 
 impl ExprTrait for Literal {
-    fn execute(&self, _env: &mut Environment) -> RuloxResult<Literal> {
+    fn execute(&self, _env: Rc<RefCell<Environment>>) -> RuloxResult<Literal> {
         Ok(self.clone())
     }
 

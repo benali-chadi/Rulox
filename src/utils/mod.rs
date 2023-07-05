@@ -8,7 +8,6 @@ use crate::{
     expression::Expr,
     rulox::Rulox,
     rulox_error::{Report, RuloxError},
-    statement::environment::Environment,
 };
 
 pub fn run_file(filename: String) {
@@ -20,7 +19,7 @@ pub fn run_file(filename: String) {
         }
     };
 
-    let mut rulox = Rulox::from(content, Environment::default());
+    let mut rulox = Rulox::from(content);
 
     if let Err(err) = rulox.run() {
         if let RuloxError::SyntaxError { .. } | RuloxError::RuntimeError { .. } = err {

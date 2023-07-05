@@ -1,11 +1,11 @@
-use std::fmt::Display;
+use std::{cell::RefCell, fmt::Display, rc::Rc};
 
 use crate::{
     expression::utils,
     rulox::Rulox,
     rulox_error::{RuloxError, RuloxResult},
     scanner::token::{Token, TokenType},
-    statement::environment::Environment,
+    statement::Environment,
 };
 
 use super::{Expr, ExprTrait, Literal};
@@ -37,9 +37,9 @@ impl Display for Binary {
 }
 
 impl ExprTrait for Binary {
-    fn execute(&self, env: &mut Environment) -> RuloxResult<Literal> {
-        let left = self.left.execute(env)?;
-        let right = self.right.execute(env)?;
+    fn execute(&self, env: Rc<RefCell<Environment>>) -> RuloxResult<Literal> {
+        let left = self.left.execute(Rc::clone(&env))?;
+        let right = self.right.execute(Rc::clone(&env))?;
 
         match self.operator.token_type {
             TokenType::Minus => match (left.value.token_type, right.value.token_type) {
@@ -205,7 +205,7 @@ impl ExprTrait for Binary {
                     left.value.line,
                 ))),
                 (TokenType::True, token_type) | (token_type, TokenType::True) => {
-                    if Literal::is_truthy(token_type) {
+                    if Literal::is_truthy(&token_type) {
                         Ok(Literal::new(Token::new(
                             TokenType::True,
                             "true",
@@ -220,7 +220,7 @@ impl ExprTrait for Binary {
                     }
                 }
                 (TokenType::False, token_type) | (token_type, TokenType::False) => {
-                    if !Literal::is_truthy(token_type) {
+                    if !Literal::is_truthy(&token_type) {
                         Ok(Literal::new(Token::new(
                             TokenType::True,
                             "true",
@@ -281,11 +281,13 @@ impl ExprTrait for Binary {
                         left.value.line,
                     )))
                 }
-                // string -> string, string -> number
-                _ => Err(RuloxError::RuntimeError {
-                    line: left.value.line,
-                    message: "at '==' oprator This must not happen".to_string(),
-                }),
+                // _ => Err(RuloxError::RuntimeError {
+                //     line: left.value.line,
+                //     message: "at '==' oprator This must not happen".to_string(),
+                // }),
+                _ => {
+                    unreachable!()
+                }
             },
             TokenType::BangEqual => match (left.value.token_type, right.value.token_type) {
                 (TokenType::Nil, TokenType::Nil) => Ok(Literal::new(Token::new(
@@ -299,7 +301,7 @@ impl ExprTrait for Binary {
                     left.value.line,
                 ))),
                 (TokenType::True, token_type) | (token_type, TokenType::True) => {
-                    if !Literal::is_truthy(token_type) {
+                    if !Literal::is_truthy(&token_type) {
                         Ok(Literal::new(Token::new(
                             TokenType::True,
                             "true",
@@ -314,7 +316,7 @@ impl ExprTrait for Binary {
                     }
                 }
                 (TokenType::False, token_type) | (token_type, TokenType::False) => {
-                    if Literal::is_truthy(token_type) {
+                    if Literal::is_truthy(&token_type) {
                         Ok(Literal::new(Token::new(
                             TokenType::True,
                             "true",
@@ -375,11 +377,13 @@ impl ExprTrait for Binary {
                         left.value.line,
                     )))
                 }
-                // string -> string, string -> number
-                _ => Err(RuloxError::RuntimeError {
-                    line: left.value.line,
-                    message: "at '!=' oprator This must not happen".to_string(),
-                }),
+                // _ => Err(RuloxError::RuntimeError {
+                //     line: left.value.line,
+                //     message: "at '!=' oprator This must not happen".to_string(),
+                // }),
+                _ => {
+                    unreachable!();
+                }
             },
             _ => Err(RuloxError::RuntimeError {
                 line: left.value.line,

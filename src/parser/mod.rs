@@ -1,8 +1,8 @@
 use crate::{
-    expression::{assign::Assign, variable::Variable, *},
+    expression::{Assign, Logical, Variable, *},
     rulox_error::{Report, RuloxError, RuloxResult},
     scanner::token::{Token, TokenType},
-    statement::{block::Block, expression::Expression, print::Print, var::Var, Stmt},
+    statement::{Block, Expression, If, Print, Stmt, Var, While},
 };
 
 pub struct Parser {
@@ -69,9 +69,17 @@ impl Parser {
 
     fn statement(&mut self) -> RuloxResult<Stmt> {
         match self.peek().token_type {
+            TokenType::If => {
+                self.advance();
+                return self.if_statement();
+            }
             TokenType::Print => {
                 self.advance();
                 return self.print_statement();
+            }
+            TokenType::While => {
+                self.advance();
+                return self.while_statement();
             }
             TokenType::LeftBrace => {
                 self.advance();
@@ -79,6 +87,35 @@ impl Parser {
             }
             _ => self.expression_statement(),
         }
+    }
+
+    fn while_statement(&mut self) -> RuloxResult<Stmt> {
+        self.consume(TokenType::LeftParen, "Expect '(' after 'if'.")?;
+        let condition = self.expression()?;
+        self.consume(TokenType::RightParen, "Expect ')' after if condition.")?;
+
+        let body = self.statement()?;
+
+        Ok(Stmt::new(Box::new(While::new(condition, body))))
+    }
+
+    fn if_statement(&mut self) -> RuloxResult<Stmt> {
+        self.consume(TokenType::LeftParen, "Expect '(' after 'if'.")?;
+        let condition = self.expression()?;
+        self.consume(TokenType::RightParen, "Expect ')' after if condition.")?;
+
+        let then_branch = self.statement()?;
+        let mut else_branch: Option<Stmt> = None;
+
+        if self.matches(&[TokenType::Else]) {
+            else_branch = Some(self.statement()?);
+        }
+
+        Ok(Stmt::new(Box::new(If::new(
+            condition,
+            then_branch,
+            else_branch,
+        ))))
     }
 
     fn block(&mut self) -> RuloxResult<Vec<Stmt>> {
@@ -109,12 +146,12 @@ impl Parser {
     }
 
     fn expression(&mut self) -> RuloxResult<Expr> {
-        // self.equality()
         self.assignment()
     }
 
     fn assignment(&mut self) -> RuloxResult<Expr> {
-        let expr = self.equality()?;
+        // let expr = self.equality()?;
+        let expr = self.or()?;
 
         if self.matches(&[TokenType::Equal]) {
             // let equals = self.previous();
@@ -137,6 +174,30 @@ impl Parser {
                     });
                 }
             };
+        }
+
+        Ok(expr)
+    }
+
+    fn or(&mut self) -> RuloxResult<Expr> {
+        let mut expr = self.and()?;
+
+        while self.matches(&[TokenType::Or]) {
+            let operator = self.previous().clone();
+            let right = self.and()?;
+            expr = Expr::new(Box::new(Logical::new(expr, operator, right)));
+        }
+
+        Ok(expr)
+    }
+
+    fn and(&mut self) -> RuloxResult<Expr> {
+        let mut expr = self.equality()?;
+
+        while self.matches(&[TokenType::And]) {
+            let operator = self.previous().clone();
+            let right = self.equality()?;
+            expr = Expr::new(Box::new(Logical::new(expr, operator, right)));
         }
 
         Ok(expr)
@@ -232,11 +293,14 @@ impl Parser {
                 return Ok(Expr::new(Box::new(Variable::new(self.previous()))));
             }
 
-            _ => Err(RuloxError::ParseError {
-                token: Some(self.peek().clone()),
-                line: self.peek().line,
-                message: "Expect expression".to_string(),
-            }),
+            _ => {
+                self.advance();
+                Err(RuloxError::ParseError {
+                    token: Some(self.previous().clone()),
+                    line: self.previous().line,
+                    message: "Expect expression".to_string(),
+                })
+            }
         }
     }
 
@@ -252,7 +316,7 @@ impl Parser {
         })
     }
 
-    pub fn synchronize(&mut self) {
+    fn _synchronize(&mut self) {
         self.advance();
 
         while !self.is_at_end() {

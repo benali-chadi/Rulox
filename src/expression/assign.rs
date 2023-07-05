@@ -1,6 +1,6 @@
-use std::fmt::Display;
+use std::{cell::RefCell, fmt::Display, rc::Rc};
 
-use crate::{rulox_error::RuloxResult, scanner::token::Token, statement::environment::Environment};
+use crate::{rulox_error::RuloxResult, scanner::token::Token, statement::Environment};
 
 use super::{Expr, ExprTrait};
 
@@ -23,10 +23,10 @@ impl Display for Assign {
 }
 
 impl ExprTrait for Assign {
-    fn execute(&self, env: &mut Environment) -> RuloxResult<super::Literal> {
-        let value = self.value.execute(env)?;
+    fn execute(&self, env: Rc<RefCell<Environment>>) -> RuloxResult<super::Literal> {
+        let value = self.value.execute(Rc::clone(&env))?;
 
-        env.assign(&self.name, &value)?;
+        env.borrow_mut().assign(&self.name, &value)?;
 
         Ok(value)
     }

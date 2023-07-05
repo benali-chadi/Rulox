@@ -1,8 +1,8 @@
-use std::fmt::Display;
+use std::{cell::RefCell, fmt::Display, rc::Rc};
 
 use crate::{expression::Expr, rulox_error::RuloxResult};
 
-use super::{environment::Environment, StmtTrait};
+use super::{Environment, StmtTrait};
 
 pub struct Print {
     pub expression: Expr,
@@ -20,11 +20,9 @@ impl Display for Print {
     }
 }
 
-// TODO: Implement the Stmt Trait
-
 impl StmtTrait for Print {
-    fn execute(&self, env: &mut Environment) -> RuloxResult<()> {
-        let literal = self.expression.execute(env)?;
+    fn execute(&self, env: Rc<RefCell<Environment>>) -> RuloxResult<()> {
+        let literal = self.expression.execute(Rc::clone(&env))?;
         println!("{}", literal);
         Ok(())
     }

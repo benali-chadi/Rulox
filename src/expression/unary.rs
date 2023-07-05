@@ -1,10 +1,10 @@
-use std::fmt::Display;
+use std::{cell::RefCell, fmt::Display, rc::Rc};
 
 use crate::{
     expression::utils,
     rulox_error::{RuloxError, RuloxResult},
     scanner::token::{Token, TokenType},
-    statement::environment::Environment,
+    statement::Environment,
 };
 
 use super::{Expr, ExprTrait, Literal};
@@ -31,8 +31,8 @@ impl Display for Unary {
 }
 
 impl ExprTrait for Unary {
-    fn execute(&self, env: &mut Environment) -> RuloxResult<Literal> {
-        let literal = self.right.execute(env)?;
+    fn execute(&self, env: Rc<RefCell<Environment>>) -> RuloxResult<Literal> {
+        let literal = self.right.execute(Rc::clone(&env))?;
 
         match self.operator.token_type {
             TokenType::Minus => match literal.value.token_type {
@@ -47,7 +47,7 @@ impl ExprTrait for Unary {
                 }),
             },
             TokenType::Bang => {
-                if Literal::is_truthy(literal.value.token_type) {
+                if Literal::is_truthy(&literal.value.token_type) {
                     return Ok(Literal::new(Token::new(
                         TokenType::False,
                         "false",

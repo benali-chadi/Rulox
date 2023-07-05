@@ -1,21 +1,25 @@
-use std::fmt::Display;
+use std::{cell::RefCell, fmt::Display, rc::Rc};
 
+pub use assign::Assign;
 pub use binary::Binary;
 pub use grouping::Grouping;
 pub use literal::Literal;
+pub use logical::Logical;
 pub use unary::Unary;
+pub use variable::Variable;
 
-use crate::{rulox_error::RuloxResult, scanner::token::Token, statement::environment::Environment};
-pub mod assign;
+use crate::{rulox_error::RuloxResult, scanner::token::Token, statement::Environment};
+mod assign;
 mod binary;
 mod grouping;
 mod literal;
+mod logical;
 mod unary;
 mod utils;
-pub mod variable;
+mod variable;
 
 pub trait ExprTrait: Display {
-    fn execute(&self, env: &mut Environment) -> RuloxResult<Literal>;
+    fn execute(&self, env: Rc<RefCell<Environment>>) -> RuloxResult<Literal>;
     fn get_token(&self) -> &Token;
 }
 
@@ -27,7 +31,7 @@ impl Expr {
     pub fn new(expression: Box<dyn ExprTrait>) -> Self {
         Self { expression }
     }
-    pub fn execute(&self, env: &mut Environment) -> RuloxResult<Literal> {
+    pub fn execute(&self, env: Rc<RefCell<Environment>>) -> RuloxResult<Literal> {
         self.expression.execute(env)
     }
 }

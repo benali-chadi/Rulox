@@ -1,6 +1,6 @@
-use std::fmt::Display;
+use std::{cell::RefCell, fmt::Display, rc::Rc};
 
-use crate::{rulox_error::RuloxResult, scanner::token::Token, statement::environment::Environment};
+use crate::{rulox_error::RuloxResult, scanner::token::Token, statement::Environment};
 
 use super::{ExprTrait, Literal};
 
@@ -22,8 +22,8 @@ impl Display for Variable {
 }
 
 impl ExprTrait for Variable {
-    fn execute(&self, env: &mut Environment) -> RuloxResult<Literal> {
-        env.get(&self.name).cloned()
+    fn execute(&self, env: Rc<RefCell<Environment>>) -> RuloxResult<Literal> {
+        env.borrow().get(&self.name)
     }
 
     fn get_token(&self) -> &Token {

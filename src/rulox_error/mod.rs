@@ -12,6 +12,7 @@ pub trait Report {
     fn report(&self);
 }
 
+#[derive(Clone)]
 pub enum RuloxError {
     SyntaxError {
         token: Option<Token>,
