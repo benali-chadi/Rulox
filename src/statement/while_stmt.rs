@@ -23,10 +23,7 @@ impl Display for While {
 
 impl StmtTrait for While {
     fn execute(&self, env: Rc<RefCell<Environment>>) -> crate::rulox_error::RuloxResult<()> {
-        let mut cond =
-            Literal::is_truthy(&self.condition.execute(Rc::clone(&env))?.value.token_type);
-        while cond {
-            cond = Literal::is_truthy(&self.condition.execute(Rc::clone(&env))?.value.token_type);
+        while Literal::is_truthy(&self.condition.execute(Rc::clone(&env))?.value.token_type) {
             self.body.execute(Rc::clone(&env))?;
         }
 
