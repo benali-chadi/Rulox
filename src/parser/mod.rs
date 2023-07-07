@@ -2,7 +2,7 @@ use crate::{
     expression::{Assign, Logical, Variable, *},
     rulox_error::{Report, RuloxError, RuloxResult},
     scanner::token::{Token, TokenType},
-    statement::{Block, Expression, If, Print, Stmt, Var, While},
+    statement::{Block, Break, Continue, Expression, If, Print, Stmt, Var, While},
 };
 
 pub struct Parser {
@@ -69,6 +69,14 @@ impl Parser {
 
     fn statement(&mut self) -> RuloxResult<Stmt> {
         match self.peek().token_type {
+            TokenType::Break => {
+                self.advance();
+                self.break_or_continue(self.previous().clone())
+            }
+            TokenType::Continue => {
+                self.advance();
+                self.break_or_continue(self.previous().clone())
+            }
             TokenType::For => {
                 self.advance();
                 self.for_statement()
@@ -90,6 +98,18 @@ impl Parser {
                 Ok(Stmt::new(Box::new(Block::new(self.block()?))))
             }
             _ => self.expression_statement(),
+        }
+    }
+
+    fn break_or_continue(&mut self, prev: Token) -> RuloxResult<Stmt> {
+        // println!("peek: {}", self.peek());
+        self.consume(TokenType::Semicolon, "Expected ';' after expression")?;
+        // println!("peek: {}", self.peek());
+
+        match prev.token_type {
+            TokenType::Break => Ok(Stmt::new(Box::new(Break::new(prev)))),
+            TokenType::Continue => Ok(Stmt::new(Box::new(Continue::new(prev)))),
+            _ => unreachable!(),
         }
     }
 

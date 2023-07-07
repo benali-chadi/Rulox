@@ -27,6 +27,9 @@ impl TokenKeywords {
         keywords.insert("var".to_string(), TokenType::Var);
         keywords.insert("while".to_string(), TokenType::While);
 
+        keywords.insert("break".to_string(), TokenType::Break);
+        keywords.insert("continue".to_string(), TokenType::Continue);
+
         TokenKeywords { keywords }
     }
 

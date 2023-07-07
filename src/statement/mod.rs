@@ -3,6 +3,8 @@ use std::{cell::RefCell, fmt::Display, rc::Rc};
 use crate::rulox_error::RuloxResult;
 
 pub use block::Block;
+pub use break_stmt::Break;
+pub use continue_stmt::Continue;
 pub use environment::Environment;
 pub use expression::Expression;
 pub use if_stmt::If;
@@ -11,6 +13,8 @@ pub use var::Var;
 pub use while_stmt::While;
 
 mod block;
+mod break_stmt;
+mod continue_stmt;
 mod environment;
 mod expression;
 mod if_stmt;

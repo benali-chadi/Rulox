@@ -1,6 +1,9 @@
 use std::{cell::RefCell, fmt::Display, rc::Rc};
 
-use crate::expression::{Expr, Literal};
+use crate::{
+    expression::{Expr, Literal},
+    rulox_error::RuloxError,
+};
 
 use super::{Environment, Stmt, StmtTrait};
 
@@ -24,7 +27,20 @@ impl Display for While {
 impl StmtTrait for While {
     fn execute(&self, env: Rc<RefCell<Environment>>) -> crate::rulox_error::RuloxResult<()> {
         while Literal::is_truthy(&self.condition.execute(Rc::clone(&env))?.value.token_type) {
-            self.body.execute(Rc::clone(&env))?;
+            match self.body.execute(Rc::clone(&env)) {
+                Ok(_) => {}
+                Err(err) => match err {
+                    RuloxError::BreakError { .. } => {
+                        break;
+                    }
+                    RuloxError::ContinueError { .. } => {
+                        continue;
+                    }
+                    _ => {
+                        return Err(err);
+                    }
+                },
+            }
         }
 
         Ok(())

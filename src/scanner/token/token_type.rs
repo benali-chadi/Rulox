@@ -22,6 +22,8 @@ pub enum TokenType {
     GreaterEqual,
     Less,
     LessEqual,
+    Break,
+    Continue,
 
     Identifier(String),
     // Literals.

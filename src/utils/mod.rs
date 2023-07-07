@@ -22,10 +22,14 @@ pub fn run_file(filename: String) {
     let mut rulox = Rulox::from(content);
 
     if let Err(err) = rulox.run() {
-        if let RuloxError::SyntaxError { .. } | RuloxError::RuntimeError { .. } = err {
+        // if let RuloxError::SyntaxError { .. } | RuloxError::RuntimeError { .. } = err {
+        //     err.report();
+        // };
+        if let RuloxError::RuntimeError { .. } = err {
+            process::exit(64);
+        } else {
             err.report();
-        };
-        process::exit(64);
+        }
     }
 }
 

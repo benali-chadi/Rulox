@@ -28,6 +28,12 @@ pub enum RuloxError {
         line: usize,
         message: String,
     },
+    BreakError {
+        line: usize,
+    },
+    ContinueError {
+        line: usize,
+    },
 }
 
 impl Report for RuloxError {
@@ -56,6 +62,20 @@ impl Report for RuloxError {
             }
             RuloxError::RuntimeError { line, message } => {
                 error(*line, message.to_string(), "Runtime".to_string())
+            }
+            RuloxError::BreakError { line } => {
+                error(
+                    *line,
+                    "'break' statement is only allowed inside loops.".to_string(),
+                    "Syntax".to_string(),
+                );
+            }
+            RuloxError::ContinueError { line } => {
+                error(
+                    *line,
+                    "'continue' statement is only allowed inside loops.".to_string(),
+                    "Syntax".to_string(),
+                );
             }
         }
     }
