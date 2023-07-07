@@ -26,7 +26,7 @@ async fn handle_signals(mut signals: Signals) {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    let signals = Signals::new(&[SIGINT, /* SIGQUIT */])?;
+    let signals = Signals::new([SIGINT, /* SIGQUIT */])?;
 
     let handle = signals.handle();
 

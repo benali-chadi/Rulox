@@ -32,7 +32,7 @@ impl Environment {
             match env.borrow().get(name) {
                 Ok(value) => return Ok(value),
                 Err(err) => {
-                    return Err(err.clone());
+                    return Err(err);
                 }
             }
         }

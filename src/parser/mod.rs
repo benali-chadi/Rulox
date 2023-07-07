@@ -69,24 +69,80 @@ impl Parser {
 
     fn statement(&mut self) -> RuloxResult<Stmt> {
         match self.peek().token_type {
+            TokenType::For => {
+                self.advance();
+                self.for_statement()
+            }
             TokenType::If => {
                 self.advance();
-                return self.if_statement();
+                self.if_statement()
             }
             TokenType::Print => {
                 self.advance();
-                return self.print_statement();
+                self.print_statement()
             }
             TokenType::While => {
                 self.advance();
-                return self.while_statement();
+                self.while_statement()
             }
             TokenType::LeftBrace => {
                 self.advance();
-                return Ok(Stmt::new(Box::new(Block::new(self.block()?))));
+                Ok(Stmt::new(Box::new(Block::new(self.block()?))))
             }
             _ => self.expression_statement(),
         }
+    }
+
+    fn for_statement(&mut self) -> RuloxResult<Stmt> {
+        self.consume(TokenType::LeftParen, "Expect '(' after 'for'.")?;
+
+        let mut initializer: Option<Stmt> = None;
+
+        // if self.matches(&[TokenType::Semicolon]) {}
+        if self.matches(&[TokenType::Var]) {
+            initializer = Some(self.var_declaration()?);
+        } else {
+            initializer = Some(self.expression_statement()?);
+        }
+
+        let mut condition: Option<Expr> = None;
+        if !self.check(&TokenType::Semicolon) {
+            condition = Some(self.expression()?);
+        }
+        self.consume(TokenType::Semicolon, "Expect ';' after loop condition")?;
+
+        let mut increment: Option<Expr> = None;
+
+        if !self.check(&TokenType::RightParen) {
+            increment = Some(self.expression()?);
+        }
+        self.consume(TokenType::RightParen, "Expect ')' after for clauses.")?;
+
+        let mut body = self.statement()?;
+
+        if let Some(inc) = increment {
+            body = Stmt::new(Box::new(Block::new(vec![
+                body,
+                Stmt::new(Box::new(Expression::new(inc))),
+            ])))
+        }
+
+        let mut cond = Expr::new(Box::new(Literal::new(Token::new(
+            TokenType::True,
+            "true",
+            1,
+        ))));
+        if let Some(c) = condition {
+            cond = c;
+        }
+
+        body = Stmt::new(Box::new(While::new(cond, body)));
+
+        if let Some(init) = initializer {
+            body = Stmt::new(Box::new(Block::new(vec![init, body])));
+        }
+
+        Ok(body)
     }
 
     fn while_statement(&mut self) -> RuloxResult<Stmt> {
