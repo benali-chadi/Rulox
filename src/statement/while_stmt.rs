@@ -33,9 +33,7 @@ impl StmtTrait for While {
                     RuloxError::BreakError { .. } => {
                         break;
                     }
-                    RuloxError::ContinueError { .. } => {
-                        continue;
-                    }
+                    RuloxError::ContinueError { .. } => {}
                     _ => {
                         return Err(err);
                     }
