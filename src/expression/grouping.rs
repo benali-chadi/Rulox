@@ -6,6 +6,7 @@ use crate::{
 
 use super::{Expr, ExprTrait, Literal};
 
+#[derive(Clone)]
 pub struct Grouping {
     pub expression: Expr,
 }

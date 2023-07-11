@@ -6,9 +6,18 @@ use crate::{
     scanner::token::Token,
 };
 
+use super::RuloxCallableTrait;
+
+// use super::RuloxCallable;
+
+pub enum VarValue {
+    Literal(Literal),
+    Callable(Rc<RefCell<dyn RuloxCallableTrait>>),
+}
+
 #[derive(Default)]
 pub struct Environment {
-    values: HashMap<String, Literal>,
+    values: HashMap<String, VarValue>,
     enclosing: Option<Rc<RefCell<Environment>>>,
 }
 
@@ -19,13 +28,17 @@ impl Environment {
             enclosing,
         }
     }
-    pub fn define(&mut self, name: &str, value: Literal) {
+    pub fn define(&mut self, name: &str, value: VarValue) {
         self.values.insert(name.to_string(), value);
     }
 
-    pub fn get(&self, name: &Token) -> RuloxResult<Literal> {
+    pub fn get(&self, name: &Token) -> RuloxResult<VarValue> {
         if let Some(value) = self.values.get(&name.lexeme) {
-            return Ok(value.clone());
+            // return Ok(value);
+            match value {
+                VarValue::Literal(val) => return Ok(VarValue::Literal(val.clone())),
+                VarValue::Callable(val) => return Ok(VarValue::Callable(Rc::clone(val))),
+            }
         }
 
         if let Some(env) = &self.enclosing {
@@ -43,11 +56,16 @@ impl Environment {
         })
     }
 
-    pub fn assign(&mut self, name: &Token, value: &Literal) -> RuloxResult<()> {
+    pub fn assign(&mut self, name: &Token, value: &VarValue) -> RuloxResult<()> {
         if let std::collections::hash_map::Entry::Occupied(mut e) =
             self.values.entry(name.lexeme.to_string())
         {
-            e.insert(value.clone());
+            let val = match value {
+                VarValue::Literal(v) => VarValue::Literal(v.clone()),
+                VarValue::Callable(v) => VarValue::Callable(Rc::clone(v)),
+            };
+
+            e.insert(val);
             return Ok(());
         }
 

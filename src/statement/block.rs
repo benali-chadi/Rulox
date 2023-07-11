@@ -4,13 +4,18 @@ use crate::rulox_error::RuloxResult;
 
 use super::{Environment, Stmt, StmtTrait};
 
+#[derive(Clone)]
 pub struct Block {
     pub statements: Vec<Stmt>,
 }
 
 impl Block {
-    pub fn new(statements: Vec<Stmt>) -> Self {
-        Self { statements }
+    pub fn new(statements: &[Stmt]) -> Self {
+        let mut stmts: Vec<Stmt> = vec![];
+        for stmt in statements {
+            stmts.push(stmt.clone());
+        }
+        Self { statements: stmts }
     }
 }
 

@@ -9,6 +9,7 @@ use crate::{
 
 use super::{Expr, ExprTrait, Literal};
 
+#[derive(Clone)]
 pub struct Logical {
     left: Expr,
     operator: Token,

@@ -6,8 +6,9 @@ use crate::{
     scanner::token::{Token, TokenType},
 };
 
-use super::{Environment, StmtTrait};
+use super::{Environment, StmtTrait, VarValue};
 
+#[derive(Clone)]
 pub struct Var {
     pub name: Token,
     pub initializer: Option<Expr>,
@@ -38,13 +39,14 @@ impl StmtTrait for Var {
             Some(expr) => {
                 let value = expr.execute(Rc::clone(&env))?;
                 // env.borrow_mut().define(&self.name.lexeme, value);
-                env.borrow_mut().define(&self.name.lexeme, value);
+                env.borrow_mut()
+                    .define(&self.name.lexeme, VarValue::Literal(value));
                 Ok(())
             }
             None => {
                 env.borrow_mut().define(
                     &self.name.lexeme,
-                    Literal::new(Token::new(TokenType::Nil, "nil", 1)),
+                    VarValue::Literal(Literal::new(Token::new(TokenType::Nil, "nil", 1))),
                 );
                 Ok(())
             }

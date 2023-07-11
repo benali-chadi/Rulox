@@ -4,6 +4,7 @@ use crate::{expression::Expr, rulox_error::RuloxResult};
 
 use super::{Environment, StmtTrait};
 
+#[derive(Clone)]
 pub struct Print {
     pub expression: Expr,
 }

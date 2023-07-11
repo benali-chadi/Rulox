@@ -7,6 +7,7 @@ use crate::{
 
 use super::{Environment, Stmt, StmtTrait};
 
+#[derive(Clone)]
 pub struct If {
     condition: Expr,
     then_branch: Stmt,

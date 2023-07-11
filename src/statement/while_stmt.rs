@@ -4,6 +4,7 @@ use crate::expression::{Expr, Literal};
 
 use super::{Environment, Stmt, StmtTrait};
 
+#[derive(Clone)]
 pub struct While {
     condition: Expr,
     body: Stmt,

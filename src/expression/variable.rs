@@ -1,10 +1,14 @@
 use std::{cell::RefCell, fmt::Display, rc::Rc};
 
-use crate::{rulox_error::RuloxResult, scanner::token::Token, statement::Environment};
+use crate::{
+    rulox_error::RuloxResult,
+    scanner::token::{Token, TokenType},
+    statement::{Environment, VarValue},
+};
 
 use super::{ExprTrait, Literal};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Variable {
     name: Token,
 }
@@ -23,7 +27,19 @@ impl Display for Variable {
 
 impl ExprTrait for Variable {
     fn execute(&self, env: Rc<RefCell<Environment>>) -> RuloxResult<Literal> {
-        env.borrow().get(&self.name)
+        match env.borrow().get(&self.name) {
+            Ok(value) => match value {
+                VarValue::Literal(val) => Ok(val.clone()),
+
+                VarValue::Callable(val) => {
+                    val.borrow_mut().call(&[], Rc::clone(&env))?;
+                    Ok(Literal {
+                        value: Token::new(TokenType::Nil, "nil", 1),
+                    })
+                }
+            },
+            Err(err) => Err(err),
+        }
     }
 
     fn get_token(&self) -> &Token {

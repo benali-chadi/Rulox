@@ -3,10 +3,11 @@ use std::{cell::RefCell, rc::Rc};
 use colored::Colorize;
 
 use crate::{
+    native_functions::ClockCallable,
     parser::Parser,
     rulox_error::RuloxResult,
     scanner::{token::TokenType, Scanner},
-    statement::{Environment, Stmt},
+    statement::{Environment, Stmt, VarValue},
 };
 
 pub struct Rulox {
@@ -18,14 +19,14 @@ impl Rulox {
     pub fn new() -> Self {
         Self {
             source: String::new(),
-            environment: Rc::new(RefCell::new(Environment::default())),
+            environment: Rc::new(RefCell::new(Rulox::globals())),
         }
     }
 
     pub fn from(source: String) -> Self {
         Self {
             source,
-            environment: Rc::new(RefCell::new(Environment::default())),
+            environment: Rc::new(RefCell::new(Rulox::globals())),
         }
     }
 
@@ -82,6 +83,17 @@ impl Rulox {
 
             _ => "nil".to_string(),
         }
+    }
+
+    fn globals() -> Environment {
+        let mut globals = Environment::default();
+
+        globals.define(
+            "clock",
+            VarValue::Callable(Rc::new(RefCell::new(ClockCallable))),
+        );
+
+        globals
     }
 }
 

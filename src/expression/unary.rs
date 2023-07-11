@@ -9,6 +9,7 @@ use crate::{
 
 use super::{Expr, ExprTrait, Literal};
 
+#[derive(Clone)]
 pub struct Unary {
     pub operator: Token,
     pub right: Expr,

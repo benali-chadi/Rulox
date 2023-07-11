@@ -14,7 +14,7 @@ pub fn run_file(filename: String) {
     let content = match fs::read_to_string(filename) {
         Ok(content) => content,
         Err(err) => {
-            println!("Error {}", err);
+            eprintln!("Error {}", err);
             process::exit(64);
         }
     };
@@ -43,7 +43,7 @@ pub fn run_prompt() {
                 }
             }
             Err(err) => {
-                println!("{}", err);
+                eprintln!("{}", err);
                 process::exit(64);
             }
         };
@@ -54,7 +54,7 @@ pub fn run_prompt() {
             }
             "clear" => {
                 if let Err(err) = process::Command::new("clear").spawn() {
-                    println!("{err}")
+                    eprintln!("{err}")
                 }
             }
             _ => match rulox.prompt_run(input) {

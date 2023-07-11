@@ -1,9 +1,14 @@
 use std::{cell::RefCell, fmt::Display, rc::Rc};
 
-use crate::{rulox_error::RuloxResult, scanner::token::Token, statement::Environment};
+use crate::{
+    rulox_error::RuloxResult,
+    scanner::token::Token,
+    statement::{Environment, VarValue},
+};
 
 use super::{Expr, ExprTrait};
 
+#[derive(Clone)]
 pub struct Assign {
     name: Token,
     value: Expr,
@@ -26,7 +31,8 @@ impl ExprTrait for Assign {
     fn execute(&self, env: Rc<RefCell<Environment>>) -> RuloxResult<super::Literal> {
         let value = self.value.execute(Rc::clone(&env))?;
 
-        env.borrow_mut().assign(&self.name, &value)?;
+        env.borrow_mut()
+            .assign(&self.name, &VarValue::Literal(value.clone()))?;
 
         Ok(value)
     }

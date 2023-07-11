@@ -4,6 +4,7 @@ use crate::expression::Expr;
 
 use super::{Environment, StmtTrait};
 
+#[derive(Clone)]
 pub struct Expression {
     pub expression: Expr,
 }

@@ -2,7 +2,7 @@ use crate::{
     expression::{Assign, Logical, Variable, *},
     rulox_error::{Report, RuloxError, RuloxResult},
     scanner::token::{Token, TokenType},
-    statement::{Block, Expression, If, Print, Stmt, Var, While},
+    statement::{Block, Expression, Function, If, Print, Stmt, Var, While},
 };
 
 pub struct Parser {
@@ -44,11 +44,72 @@ impl Parser {
     }
 
     fn declaration(&mut self) -> RuloxResult<Stmt> {
-        if self.matches(&[TokenType::Var]) {
-            return self.var_declaration();
-        }
+        // if self.matches(&[TokenType::Var]) {
+        // }
 
-        self.statement()
+        match self.peek().token_type {
+            TokenType::Fun => {
+                self.advance();
+
+                return self.function("function");
+            }
+            TokenType::Var => {
+                self.advance();
+
+                return self.var_declaration();
+            }
+
+            _ => self.statement(),
+        }
+    }
+
+    fn function(&mut self, kind: &str) -> RuloxResult<Stmt> {
+        let name = self.consume(
+            TokenType::Identifier(String::new()),
+            &format!("Expect {} name.", kind),
+        )?;
+
+        self.consume(
+            TokenType::LeftParen,
+            &format!("Expect '(' after {} name", kind),
+        )?;
+
+        let mut params: Vec<Token> = Vec::new();
+
+        if !self.check(&TokenType::RightParen) {
+            loop {
+                if params.len() >= 255 {
+                    return Err(RuloxError::ParseError {
+                        token: Some(self.peek().clone()),
+                        line: self.peek().line,
+                        message: "Can't have more than 255 arguments.".to_string(),
+                    });
+                }
+                params.push(self.consume(
+                    TokenType::Identifier(String::new()),
+                    "Expect parameter name.",
+                )?);
+
+                if !self.matches(&[TokenType::Comma]) {
+                    break;
+                }
+            }
+        }
+        // self.advance();
+        self.consume(TokenType::RightParen, "Expect ')' after parameters.")?;
+
+        self.consume(
+            TokenType::LeftBrace,
+            &format!("Expect '{{' before {} body.", kind),
+        )?;
+
+        let body = self.block()?;
+
+        Ok(Stmt::new(Box::new(Function::new(
+            name,
+            params,
+            Block::new(&body),
+        ))))
     }
 
     fn var_declaration(&mut self) -> RuloxResult<Stmt> {
@@ -87,7 +148,7 @@ impl Parser {
             }
             TokenType::LeftBrace => {
                 self.advance();
-                Ok(Stmt::new(Box::new(Block::new(self.block()?))))
+                Ok(Stmt::new(Box::new(Block::new(&self.block()?))))
             }
             _ => self.expression_statement(),
         }
@@ -121,7 +182,7 @@ impl Parser {
         let mut body = self.statement()?;
 
         if let Some(inc) = increment {
-            body = Stmt::new(Box::new(Block::new(vec![
+            body = Stmt::new(Box::new(Block::new(&vec![
                 body,
                 Stmt::new(Box::new(Expression::new(inc))),
             ])))
@@ -139,7 +200,7 @@ impl Parser {
         body = Stmt::new(Box::new(While::new(cond, body)));
 
         if let Some(init) = initializer {
-            body = Stmt::new(Box::new(Block::new(vec![init, body])));
+            body = Stmt::new(Box::new(Block::new(&vec![init, body])));
         }
 
         Ok(body)
@@ -319,7 +380,58 @@ impl Parser {
             return Ok(Expr::new(Box::new(Unary::new(operator, right))));
         }
 
-        self.primary()
+        // self.primary()
+        self.call()
+    }
+
+    fn call(&mut self) -> RuloxResult<Expr> {
+        let mut expr = self.primary()?;
+
+        loop {
+            if self.matches(&[TokenType::LeftParen]) {
+                expr = self.finish_call(expr)?;
+            } else {
+                break;
+            }
+        }
+
+        Ok(expr)
+    }
+
+    fn finish_call(&mut self, callee: Expr) -> RuloxResult<Expr> {
+        let mut arguments: Vec<Expr> = Vec::new();
+
+        if !self.check(&TokenType::RightParen) {
+            // arguments.push(self.expression()?);
+
+            // while self.matches(&[TokenType::Comma]) {
+            //     if arguments.len() >= 255 {
+            //         return Err(RuloxError::ParseError {
+            //             token: Some(self.peek().clone()),
+            //             line: self.peek().line,
+            //             message: "Can't have more than 255 arguments.".to_string(),
+            //         });
+            //     }
+            //     arguments.push(self.expression()?);
+            // }
+            loop {
+                if arguments.len() >= 255 {
+                    return Err(RuloxError::ParseError {
+                        token: Some(self.peek().clone()),
+                        line: self.peek().line,
+                        message: "Can't have more than 255 arguments.".to_string(),
+                    });
+                }
+                arguments.push(self.expression()?);
+                if !self.matches(&[TokenType::Comma]) {
+                    break;
+                }
+            }
+        }
+
+        let paren = self.consume(TokenType::RightParen, "Expect ')' after arguments.")?;
+
+        Ok(Expr::new(Box::new(Call::new(callee, paren, arguments))))
     }
 
     fn primary(&mut self) -> RuloxResult<Expr> {
