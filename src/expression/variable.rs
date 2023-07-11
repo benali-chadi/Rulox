@@ -31,12 +31,13 @@ impl ExprTrait for Variable {
             Ok(value) => match value {
                 VarValue::Literal(val) => Ok(val.clone()),
 
-                VarValue::Callable(val) => {
-                    val.borrow_mut().call(&[], Rc::clone(&env))?;
-                    Ok(Literal {
-                        value: Token::new(TokenType::Nil, "nil", 1),
-                    })
-                }
+                VarValue::Callable(_) => Ok(Literal {
+                    value: Token::new(
+                        TokenType::String(self.name.lexeme.to_string()),
+                        &self.name.lexeme,
+                        1,
+                    ),
+                }),
             },
             Err(err) => Err(err),
         }

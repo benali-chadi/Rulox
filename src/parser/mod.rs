@@ -402,18 +402,6 @@ impl Parser {
         let mut arguments: Vec<Expr> = Vec::new();
 
         if !self.check(&TokenType::RightParen) {
-            // arguments.push(self.expression()?);
-
-            // while self.matches(&[TokenType::Comma]) {
-            //     if arguments.len() >= 255 {
-            //         return Err(RuloxError::ParseError {
-            //             token: Some(self.peek().clone()),
-            //             line: self.peek().line,
-            //             message: "Can't have more than 255 arguments.".to_string(),
-            //         });
-            //     }
-            //     arguments.push(self.expression()?);
-            // }
             loop {
                 if arguments.len() >= 255 {
                     return Err(RuloxError::ParseError {

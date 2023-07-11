@@ -54,7 +54,7 @@ impl Expr {
         Self { expression }
     }
     pub fn execute(&self, env: Rc<RefCell<Environment>>) -> RuloxResult<Literal> {
-        self.expression.execute(env)
+        self.expression.execute(Rc::clone(&env))
     }
 }
 

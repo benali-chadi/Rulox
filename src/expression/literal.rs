@@ -45,7 +45,7 @@ impl Display for Literal {
 
 impl ExprTrait for Literal {
     fn execute(&self, _env: Rc<RefCell<Environment>>) -> RuloxResult<Literal> {
-        Ok(self.clone())
+        Ok(Literal::new(self.value.clone()))
     }
 
     fn get_token(&self) -> &Token {

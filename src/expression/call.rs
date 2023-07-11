@@ -36,61 +36,22 @@ impl ExprTrait for Call {
         &self,
         env: Rc<RefCell<Environment>>,
     ) -> crate::rulox_error::RuloxResult<super::Literal> {
-        // TODO: Modify this later
-        match self.callee.expression.get_token().token_type {
-            TokenType::Identifier(_) => {
-                let callee = self.callee.expression.get_token();
-                let mut args: Vec<_> = Vec::new();
+        let callee = self.callee.execute(Rc::clone(&env))?;
 
-                for arg in &self.arguments {
-                    args.push(arg.execute(Rc::clone(&env))?);
-                }
+        let function = env.borrow().get(&callee.value)?;
 
-                let function = env.borrow().get(callee)?;
-
-                match function {
-                    VarValue::Callable(fun) => {
-                        fun.borrow_mut().call(&self.arguments, Rc::clone(&env))?;
-                        Ok(Literal::new(Token::new(TokenType::Nil, "nil", 1)))
-                    }
-                    VarValue::Literal(_) => {
-                        return Err(RuloxError::RuntimeError {
-                            line: callee.line,
-                            message: "Can only call functions and classes.".to_string(),
-                        });
-                    }
-                }
+        match function {
+            VarValue::Callable(fun) => {
+                fun.borrow_mut().call(&self.arguments, Rc::clone(&env))?;
+                Ok(Literal::new(Token::new(TokenType::Nil, "nil", 1)))
             }
-            _ => {
+            VarValue::Literal(_) => {
                 return Err(RuloxError::RuntimeError {
-                    line: self.paren.line,
+                    line: callee.value.line,
                     message: "Can only call functions and classes.".to_string(),
-                })
+                });
             }
         }
-        // let callee = self.callee.execute(Rc::clone(&env))?;
-        // println!("Calling {}", callee);
-        //
-        // let mut args: Vec<_> = Vec::new();
-        //
-        // for arg in &self.arguments {
-        //     args.push(arg.execute(Rc::clone(&env))?);
-        // }
-        //
-        // let function = env.borrow().get(&callee.value)?;
-        //
-        // match function {
-        //     VarValue::Callable(fun) => {
-        //         fun.borrow_mut().call(&self.arguments, Rc::clone(&env))?;
-        //         Ok(Literal::new(Token::new(TokenType::Nil, "nil", 1)))
-        //     }
-        //     VarValue::Literal(_) => {
-        //         return Err(RuloxError::RuntimeError {
-        //             line: callee.value.line,
-        //             message: "Can only call functions and classes.".to_string(),
-        //         });
-        //     }
-        // }
     }
 
     fn get_token(&self) -> &Token {

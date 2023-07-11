@@ -56,7 +56,7 @@ impl Stmt {
     }
 
     pub fn execute(&self, env: Rc<RefCell<Environment>>) -> RuloxResult<()> {
-        self.statement.execute(env)
+        self.statement.execute(Rc::clone(&env))
     }
 }
 

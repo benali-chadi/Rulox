@@ -28,6 +28,8 @@ impl RuloxCallableTrait for ClockCallable {
         let start = SystemTime::now();
         let now = start.duration_since(UNIX_EPOCH).unwrap().as_secs_f64();
 
+        println!("[this is temporary] {}", now);
+
         Ok(VarValue::Literal(Literal::new(Token::new(
             TokenType::Number(now),
             "",
