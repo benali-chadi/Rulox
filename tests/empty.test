@@ -6,8 +6,3 @@ if (false) {} else {}
 
 print "ok"; // expect: ok
 
-fun sayHi(first, last) {
-	print "Hi, " + first + " " + last + "!";
-}
-
-sayHi("chadi", "cbenali");

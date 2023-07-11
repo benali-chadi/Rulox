@@ -29,7 +29,7 @@ impl ExprTrait for Variable {
     fn execute(&self, env: Rc<RefCell<Environment>>) -> RuloxResult<Literal> {
         match env.borrow().get(&self.name) {
             Ok(value) => match value {
-                VarValue::Literal(val) => Ok(val.clone()),
+                VarValue::Literal(val) => Ok(val),
 
                 VarValue::Callable(_) => Ok(Literal {
                     value: Token::new(

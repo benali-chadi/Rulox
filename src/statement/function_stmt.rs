@@ -27,11 +27,8 @@ impl Display for Function {
     }
 }
 
-// TODO: Implement the Stmt Trait
 impl StmtTrait for Function {
     fn execute(&self, env: Rc<RefCell<Environment>>) -> RuloxResult<()> {
-        // let function_callable = RuloxCallable::new(Box::new(self));
-
         env.borrow_mut().define(
             &self.name.lexeme,
             super::VarValue::Callable(Rc::new(RefCell::new(self.clone()))),

@@ -1,7 +1,7 @@
 use std::{cell::RefCell, fmt::Display, rc::Rc};
 
 use crate::{
-    rulox_error::RuloxError,
+    rulox_error::{RuloxError, RuloxResult},
     scanner::token::{Token, TokenType},
     statement::{Environment, VarValue},
 };
@@ -32,25 +32,21 @@ impl Display for Call {
 }
 
 impl ExprTrait for Call {
-    fn execute(
-        &self,
-        env: Rc<RefCell<Environment>>,
-    ) -> crate::rulox_error::RuloxResult<super::Literal> {
+    fn execute(&self, env: Rc<RefCell<Environment>>) -> RuloxResult<Literal> {
         let callee = self.callee.execute(Rc::clone(&env))?;
 
         let function = env.borrow().get(&callee.value)?;
 
         match function {
             VarValue::Callable(fun) => {
+                // return Ok(fun.borrow_mut().call(&self.arguments, Rc::clone(&env))?);
                 fun.borrow_mut().call(&self.arguments, Rc::clone(&env))?;
                 Ok(Literal::new(Token::new(TokenType::Nil, "nil", 1)))
             }
-            VarValue::Literal(_) => {
-                return Err(RuloxError::RuntimeError {
-                    line: callee.value.line,
-                    message: "Can only call functions and classes.".to_string(),
-                });
-            }
+            VarValue::Literal(_) => Err(RuloxError::RuntimeError {
+                line: callee.value.line,
+                message: "Can only call functions and classes.".to_string(),
+            }),
         }
     }
 

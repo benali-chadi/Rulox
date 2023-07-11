@@ -29,11 +29,6 @@ pub trait ExprClone {
     fn clone_box(&self) -> Box<dyn ExprTrait>;
 }
 
-#[derive(Clone)]
-pub struct Expr {
-    pub expression: Box<dyn ExprTrait>,
-}
-
 impl<T> ExprClone for T
 where
     T: 'static + ExprTrait + Clone,
@@ -47,6 +42,11 @@ impl Clone for Box<dyn ExprTrait> {
     fn clone(&self) -> Self {
         self.clone_box()
     }
+}
+
+#[derive(Clone)]
+pub struct Expr {
+    pub expression: Box<dyn ExprTrait>,
 }
 
 impl Expr {

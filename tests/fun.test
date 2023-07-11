@@ -1,0 +1,11 @@
+fun sayHi(first, last) {
+	print "Hi, " + first + " " + last + "!";
+}
+
+sayHi("chadi", "cbenali");
+
+fun test(a) {
+    print a;
+}
+
+test(19);

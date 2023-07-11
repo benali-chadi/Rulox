@@ -51,12 +51,12 @@ impl Parser {
             TokenType::Fun => {
                 self.advance();
 
-                return self.function("function");
+                self.function("function")
             }
             TokenType::Var => {
                 self.advance();
 
-                return self.var_declaration();
+                self.var_declaration()
             }
 
             _ => self.statement(),
@@ -157,13 +157,13 @@ impl Parser {
     fn for_statement(&mut self) -> RuloxResult<Stmt> {
         self.consume(TokenType::LeftParen, "Expect '(' after 'for'.")?;
 
-        let mut initializer: Option<Stmt> = None;
+        let mut _initializer: Option<Stmt> = None;
 
         // if self.matches(&[TokenType::Semicolon]) {}
         if self.matches(&[TokenType::Var]) {
-            initializer = Some(self.var_declaration()?);
+            _initializer = Some(self.var_declaration()?);
         } else {
-            initializer = Some(self.expression_statement()?);
+            _initializer = Some(self.expression_statement()?);
         }
 
         let mut condition: Option<Expr> = None;
@@ -182,7 +182,7 @@ impl Parser {
         let mut body = self.statement()?;
 
         if let Some(inc) = increment {
-            body = Stmt::new(Box::new(Block::new(&vec![
+            body = Stmt::new(Box::new(Block::new(&[
                 body,
                 Stmt::new(Box::new(Expression::new(inc))),
             ])))
@@ -199,8 +199,8 @@ impl Parser {
 
         body = Stmt::new(Box::new(While::new(cond, body)));
 
-        if let Some(init) = initializer {
-            body = Stmt::new(Box::new(Block::new(&vec![init, body])));
+        if let Some(init) = _initializer {
+            body = Stmt::new(Box::new(Block::new(&[init, body])));
         }
 
         Ok(body)
