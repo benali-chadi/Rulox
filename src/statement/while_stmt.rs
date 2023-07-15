@@ -24,18 +24,12 @@ impl Display for While {
 
 impl StmtTrait for While {
     fn execute(&self, env: Rc<RefCell<Environment>>) -> crate::rulox_error::RuloxResult<()> {
-        match self.condition.execute(Rc::clone(&env))? {
-            super::VarValue::Literal(val) => {
-                while Literal::is_truthy(&val.value.token_type) {
-                    self.body.execute(Rc::clone(&env))?;
-                }
-            }
-            super::VarValue::Callable(_) => todo!(),
+        while Literal::is_truthy(match &self.condition.execute(Rc::clone(&env))? {
+            super::VarValue::Literal(val) => &val.value.token_type,
+            super::VarValue::Callable(_) => unreachable!(),
+        }) {
+            self.body.execute(Rc::clone(&env))?;
         }
-
-        // while Literal::is_truthy(&self.condition.execute(Rc::clone(&env))?.value.token_type) {
-        //     self.body.execute(Rc::clone(&env))?;
-        // }
 
         Ok(())
     }

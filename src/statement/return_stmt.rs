@@ -1,6 +1,10 @@
 use std::{cell::RefCell, fmt::Display, rc::Rc};
 
-use crate::{expression::Expr, rulox_error::RuloxResult, scanner::token::Token};
+use crate::{
+    expression::Expr,
+    rulox_error::{RuloxError, RuloxResult},
+    scanner::token::Token,
+};
 
 use super::{Environment, StmtTrait};
 
@@ -27,6 +31,15 @@ impl Display for Return {
 
 impl StmtTrait for Return {
     fn execute(&self, env: Rc<RefCell<Environment>>) -> RuloxResult<()> {
-        todo!()
+        match &self.value {
+            Some(val) => Err(RuloxError::ReturnError {
+                line: self.keyword.line,
+                value: Some(val.execute(Rc::clone(&env))?),
+            }),
+            None => Err(RuloxError::ReturnError {
+                line: self.keyword.line,
+                value: None,
+            }),
+        }
     }
 }

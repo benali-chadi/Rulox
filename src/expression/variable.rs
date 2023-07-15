@@ -2,11 +2,11 @@ use std::{cell::RefCell, fmt::Display, rc::Rc};
 
 use crate::{
     rulox_error::RuloxResult,
-    scanner::token::{Token, TokenType},
+    scanner::token::Token,
     statement::{Environment, VarValue},
 };
 
-use super::{ExprTrait, Literal};
+use super::ExprTrait;
 
 #[derive(Debug, Clone)]
 pub struct Variable {
@@ -27,20 +27,6 @@ impl Display for Variable {
 
 impl ExprTrait for Variable {
     fn execute(&self, env: Rc<RefCell<Environment>>) -> RuloxResult<VarValue> {
-        // match env.borrow().get(&self.name) {
-        //     Ok(value) => match value {
-        //         VarValue::Literal(val) => Ok(val),
-        //
-        //         VarValue::Callable(_) => Ok(Literal {
-        //             value: Token::new(
-        //                 TokenType::String(self.name.lexeme.to_string()),
-        //                 &self.name.lexeme,
-        //                 1,
-        //             ),
-        //         }),
-        //     },
-        //     Err(err) => Err(err),
-        // }
         env.borrow().get(&self.name)
     }
 

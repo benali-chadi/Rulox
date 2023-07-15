@@ -3,7 +3,10 @@ use std::{
     fmt::{Debug, Display},
 };
 
-use crate::scanner::token::{Token, TokenType};
+use crate::{
+    scanner::token::{Token, TokenType},
+    statement::VarValue,
+};
 use colored::*;
 
 pub type RuloxResult<T> = Result<T, RuloxError>;
@@ -27,6 +30,10 @@ pub enum RuloxError {
     RuntimeError {
         line: usize,
         message: String,
+    },
+    ReturnError {
+        line: usize,
+        value: Option<VarValue>,
     },
 }
 
@@ -57,6 +64,11 @@ impl Report for RuloxError {
             RuloxError::RuntimeError { line, message } => {
                 error(*line, message.to_string(), "Runtime".to_string())
             }
+            RuloxError::ReturnError { line, .. } => error(
+                *line,
+                "Return is only allowed inside functions".to_string(),
+                "Parse".to_string(),
+            ),
         }
     }
 }

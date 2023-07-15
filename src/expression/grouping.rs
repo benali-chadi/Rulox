@@ -7,7 +7,7 @@ use crate::{
     statement::{Environment, VarValue},
 };
 
-use super::{Expr, ExprTrait, Literal};
+use super::{Expr, ExprTrait};
 
 #[derive(Clone)]
 pub struct Grouping {

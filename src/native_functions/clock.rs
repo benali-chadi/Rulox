@@ -21,7 +21,7 @@ impl Display for ClockCallable {
 
 impl RuloxCallableTrait for ClockCallable {
     fn call(
-        &mut self,
+        &self,
         _arguments: &[Expr],
         _env: Rc<RefCell<Environment>>,
     ) -> crate::rulox_error::RuloxResult<VarValue> {

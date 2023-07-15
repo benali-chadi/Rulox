@@ -43,12 +43,6 @@ impl StmtTrait for If {
             super::VarValue::Callable(_) => todo!(),
         }
 
-        // if Literal::is_truthy(&self.condition.execute(Rc::clone(&env))?.value.token_type) {
-        //     return self.then_branch.execute(Rc::clone(&env));
-        // } else if let Some(statement) = &self.else_branch {
-        //     return statement.execute(Rc::clone(&env));
-        // }
-
         Ok(())
     }
 }

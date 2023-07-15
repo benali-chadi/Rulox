@@ -38,7 +38,7 @@ impl StmtTrait for Function {
 }
 
 impl RuloxCallableTrait for Function {
-    fn call(&mut self, arguments: &[Expr], env: Rc<RefCell<Environment>>) -> RuloxResult<VarValue> {
+    fn call(&self, arguments: &[Expr], env: Rc<RefCell<Environment>>) -> RuloxResult<VarValue> {
         let current_env = Rc::new(RefCell::new(Environment::from(Some(Rc::clone(&env)))));
 
         for (index, value) in self.params.iter().enumerate() {
