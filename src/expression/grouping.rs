@@ -1,7 +1,10 @@
 use std::{cell::RefCell, fmt::Display, rc::Rc};
 
 use crate::{
-    expression::utils, rulox_error::RuloxResult, scanner::token::Token, statement::Environment,
+    expression::utils,
+    rulox_error::RuloxResult,
+    scanner::token::Token,
+    statement::{Environment, VarValue},
 };
 
 use super::{Expr, ExprTrait, Literal};
@@ -24,7 +27,7 @@ impl Display for Grouping {
 }
 
 impl ExprTrait for Grouping {
-    fn execute(&self, env: Rc<RefCell<Environment>>) -> RuloxResult<Literal> {
+    fn execute(&self, env: Rc<RefCell<Environment>>) -> RuloxResult<VarValue> {
         self.expression.execute(Rc::clone(&env))
     }
 

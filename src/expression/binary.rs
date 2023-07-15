@@ -5,7 +5,7 @@ use crate::{
     rulox::Rulox,
     rulox_error::{RuloxError, RuloxResult},
     scanner::token::{Token, TokenType},
-    statement::Environment,
+    statement::{Environment, VarValue},
 };
 
 use super::{Expr, ExprTrait, Literal};
@@ -38,358 +38,358 @@ impl Display for Binary {
 }
 
 impl ExprTrait for Binary {
-    fn execute(&self, env: Rc<RefCell<Environment>>) -> RuloxResult<Literal> {
+    fn execute(&self, env: Rc<RefCell<Environment>>) -> RuloxResult<VarValue> {
         let left = self.left.execute(Rc::clone(&env))?;
         let right = self.right.execute(Rc::clone(&env))?;
 
-        match self.operator.token_type {
-            TokenType::Minus => match (left.value.token_type, right.value.token_type) {
-                (TokenType::Number(lval), TokenType::Number(rval)) => {
-                    let value = lval - rval;
-                    Ok(Literal::new(Token::new(
-                        TokenType::Number(value),
-                        &value.to_string(),
-                        left.value.line,
-                    )))
-                }
-                _ => Err(RuloxError::RuntimeError {
-                    line: left.value.line,
-                    message: "at '-' oprator Expect type Number".to_string(),
-                }),
-            },
+        match (left, right) {
+            (VarValue::Literal(left), VarValue::Literal(right)) => {
+                match self.operator.token_type {
+                    TokenType::Minus => match (left.value.token_type, right.value.token_type) {
+                        (TokenType::Number(lval), TokenType::Number(rval)) => {
+                            let value = lval - rval;
+                            Ok(VarValue::Literal(Literal::new(Token::new(
+                                TokenType::Number(value),
+                                &value.to_string(),
+                                left.value.line,
+                            ))))
+                        }
+                        _ => Err(RuloxError::RuntimeError {
+                            line: left.value.line,
+                            message: "at '-' oprator Expect type Number".to_string(),
+                        }),
+                    },
 
-            TokenType::Slash => match (left.value.token_type, right.value.token_type) {
-                (TokenType::Number(lval), TokenType::Number(rval)) => {
-                    let value = lval / rval;
-                    Ok(Literal::new(Token::new(
-                        TokenType::Number(value),
-                        &value.to_string(),
-                        left.value.line,
-                    )))
-                }
-                _ => Err(RuloxError::RuntimeError {
-                    line: left.value.line,
-                    message: "at '/' oprator Expect type Number".to_string(),
-                }),
-            },
+                    TokenType::Slash => match (left.value.token_type, right.value.token_type) {
+                        (TokenType::Number(lval), TokenType::Number(rval)) => {
+                            let value = lval / rval;
+                            Ok(VarValue::Literal(Literal::new(Token::new(
+                                TokenType::Number(value),
+                                &value.to_string(),
+                                left.value.line,
+                            ))))
+                        }
+                        _ => Err(RuloxError::RuntimeError {
+                            line: left.value.line,
+                            message: "at '/' oprator Expect type Number".to_string(),
+                        }),
+                    },
 
-            TokenType::Star => match (left.value.token_type, right.value.token_type) {
-                (TokenType::Number(lval), TokenType::Number(rval)) => {
-                    let value = lval * rval;
-                    Ok(Literal::new(Token::new(
-                        TokenType::Number(value),
-                        &value.to_string(),
-                        left.value.line,
-                    )))
-                }
-                _ => Err(RuloxError::RuntimeError {
-                    line: left.value.line,
-                    message: "at '*' oprator Expect type Number".to_string(),
-                }),
-            },
-            TokenType::Plus => match (left.value.token_type, right.value.token_type) {
-                (TokenType::Number(lval), TokenType::Number(rval)) => {
-                    let value = lval + rval;
-                    Ok(Literal::new(Token::new(
-                        TokenType::Number(value),
-                        &value.to_string(),
-                        left.value.line,
-                    )))
-                }
-                (TokenType::String(lval), token_type) => {
-                    let value = lval + &Rulox::literal_token_type_to_string(token_type);
-                    Ok(Literal::new(Token::new(
-                        TokenType::String(value.to_string()),
-                        &value,
-                        left.value.line,
-                    )))
-                }
-                (token_type, TokenType::String(lval)) => {
-                    let value = Rulox::literal_token_type_to_string(token_type) + &lval;
-                    Ok(Literal::new(Token::new(
-                        TokenType::String(value.to_string()),
-                        &value,
-                        left.value.line,
-                    )))
-                }
-                _ => Err(RuloxError::RuntimeError {
-                    line: left.value.line,
-                    message: "at '+' oprator Expect type Number or one of String".to_string(),
-                }),
-            },
-            // Comparison Operators
-            TokenType::Greater => match (left.value.token_type, right.value.token_type) {
-                (TokenType::Number(lval), TokenType::Number(rval)) => {
-                    let val = lval > rval;
-                    let value = if val {
-                        TokenType::True
-                    } else {
-                        TokenType::False
-                    };
-                    Ok(Literal::new(Token::new(
-                        value,
-                        &val.to_string(),
-                        left.value.line,
-                    )))
-                }
-                _ => Err(RuloxError::RuntimeError {
-                    line: left.value.line,
-                    message: "at '>' oprator Expect type Number".to_string(),
-                }),
-            },
-            TokenType::GreaterEqual => match (left.value.token_type, right.value.token_type) {
-                (TokenType::Number(lval), TokenType::Number(rval)) => {
-                    let val = lval >= rval;
-                    let value = if val {
-                        TokenType::True
-                    } else {
-                        TokenType::False
-                    };
-                    Ok(Literal::new(Token::new(
-                        value,
-                        &val.to_string(),
-                        left.value.line,
-                    )))
-                }
-                _ => Err(RuloxError::RuntimeError {
-                    line: left.value.line,
-                    message: "at '>=' oprator Expect type Number".to_string(),
-                }),
-            },
-            TokenType::Less => match (left.value.token_type, right.value.token_type) {
-                (TokenType::Number(lval), TokenType::Number(rval)) => {
-                    let val = lval < rval;
-                    let value = if val {
-                        TokenType::True
-                    } else {
-                        TokenType::False
-                    };
-                    Ok(Literal::new(Token::new(
-                        value,
-                        &val.to_string(),
-                        left.value.line,
-                    )))
-                }
-                _ => Err(RuloxError::RuntimeError {
-                    line: left.value.line,
-                    message: "at '<' oprator Expect type Number".to_string(),
-                }),
-            },
-            TokenType::LessEqual => match (left.value.token_type, right.value.token_type) {
-                (TokenType::Number(lval), TokenType::Number(rval)) => {
-                    let val = lval <= rval;
-                    let value = if val {
-                        TokenType::True
-                    } else {
-                        TokenType::False
-                    };
-                    Ok(Literal::new(Token::new(
-                        value,
-                        &val.to_string(),
-                        left.value.line,
-                    )))
-                }
-                _ => Err(RuloxError::RuntimeError {
-                    line: left.value.line,
-                    message: "at '<=' oprator Expect type Number".to_string(),
-                }),
-            },
-            TokenType::EqualEqual => match (left.value.token_type, right.value.token_type) {
-                (TokenType::Nil, TokenType::Nil) => Ok(Literal::new(Token::new(
-                    TokenType::True,
-                    "true",
-                    left.value.line,
-                ))),
-                (TokenType::Nil, ..) | (.., TokenType::Nil) => Ok(Literal::new(Token::new(
-                    TokenType::False,
-                    "false",
-                    left.value.line,
-                ))),
-                (TokenType::True, token_type) | (token_type, TokenType::True) => {
-                    if Literal::is_truthy(&token_type) {
-                        Ok(Literal::new(Token::new(
-                            TokenType::True,
-                            "true",
-                            left.value.line,
-                        )))
-                    } else {
-                        Ok(Literal::new(Token::new(
-                            TokenType::False,
-                            "false",
-                            left.value.line,
-                        )))
+                    TokenType::Star => match (left.value.token_type, right.value.token_type) {
+                        (TokenType::Number(lval), TokenType::Number(rval)) => {
+                            let value = lval * rval;
+                            Ok(VarValue::Literal(Literal::new(Token::new(
+                                TokenType::Number(value),
+                                &value.to_string(),
+                                left.value.line,
+                            ))))
+                        }
+                        _ => Err(RuloxError::RuntimeError {
+                            line: left.value.line,
+                            message: "at '*' oprator Expect type Number".to_string(),
+                        }),
+                    },
+                    TokenType::Plus => match (left.value.token_type, right.value.token_type) {
+                        (TokenType::Number(lval), TokenType::Number(rval)) => {
+                            let value = lval + rval;
+                            Ok(VarValue::Literal(Literal::new(Token::new(
+                                TokenType::Number(value),
+                                &value.to_string(),
+                                left.value.line,
+                            ))))
+                        }
+                        (TokenType::String(lval), token_type) => {
+                            let value = lval + &Rulox::literal_token_type_to_string(token_type);
+                            Ok(VarValue::Literal(Literal::new(Token::new(
+                                TokenType::String(value.to_string()),
+                                &value,
+                                left.value.line,
+                            ))))
+                        }
+                        (token_type, TokenType::String(lval)) => {
+                            let value = Rulox::literal_token_type_to_string(token_type) + &lval;
+                            Ok(VarValue::Literal(Literal::new(Token::new(
+                                TokenType::String(value.to_string()),
+                                &value,
+                                left.value.line,
+                            ))))
+                        }
+                        _ => Err(RuloxError::RuntimeError {
+                            line: left.value.line,
+                            message: "at '+' oprator Expect type Number or one of String"
+                                .to_string(),
+                        }),
+                    },
+                    // Comparison Operators
+                    TokenType::Greater => match (left.value.token_type, right.value.token_type) {
+                        (TokenType::Number(lval), TokenType::Number(rval)) => {
+                            let val = lval > rval;
+                            let value = if val {
+                                TokenType::True
+                            } else {
+                                TokenType::False
+                            };
+                            Ok(VarValue::Literal(Literal::new(Token::new(
+                                value,
+                                &val.to_string(),
+                                left.value.line,
+                            ))))
+                        }
+                        _ => Err(RuloxError::RuntimeError {
+                            line: left.value.line,
+                            message: "at '>' oprator Expect type Number".to_string(),
+                        }),
+                    },
+                    TokenType::GreaterEqual => {
+                        match (left.value.token_type, right.value.token_type) {
+                            (TokenType::Number(lval), TokenType::Number(rval)) => {
+                                let val = lval >= rval;
+                                let value = if val {
+                                    TokenType::True
+                                } else {
+                                    TokenType::False
+                                };
+                                Ok(VarValue::Literal(Literal::new(Token::new(
+                                    value,
+                                    &val.to_string(),
+                                    left.value.line,
+                                ))))
+                            }
+                            _ => Err(RuloxError::RuntimeError {
+                                line: left.value.line,
+                                message: "at '>=' oprator Expect type Number".to_string(),
+                            }),
+                        }
                     }
-                }
-                (TokenType::False, token_type) | (token_type, TokenType::False) => {
-                    if !Literal::is_truthy(&token_type) {
-                        Ok(Literal::new(Token::new(
-                            TokenType::True,
-                            "true",
-                            left.value.line,
-                        )))
-                    } else {
-                        Ok(Literal::new(Token::new(
-                            TokenType::False,
-                            "false",
-                            left.value.line,
-                        )))
+                    TokenType::Less => match (left.value.token_type, right.value.token_type) {
+                        (TokenType::Number(lval), TokenType::Number(rval)) => {
+                            let val = lval < rval;
+                            let value = if val {
+                                TokenType::True
+                            } else {
+                                TokenType::False
+                            };
+                            Ok(VarValue::Literal(Literal::new(Token::new(
+                                value,
+                                &val.to_string(),
+                                left.value.line,
+                            ))))
+                        }
+                        _ => Err(RuloxError::RuntimeError {
+                            line: left.value.line,
+                            message: "at '<' oprator Expect type Number".to_string(),
+                        }),
+                    },
+                    TokenType::LessEqual => match (left.value.token_type, right.value.token_type) {
+                        (TokenType::Number(lval), TokenType::Number(rval)) => {
+                            let val = lval <= rval;
+                            let value = if val {
+                                TokenType::True
+                            } else {
+                                TokenType::False
+                            };
+                            Ok(VarValue::Literal(Literal::new(Token::new(
+                                value,
+                                &val.to_string(),
+                                left.value.line,
+                            ))))
+                        }
+                        _ => Err(RuloxError::RuntimeError {
+                            line: left.value.line,
+                            message: "at '<=' oprator Expect type Number".to_string(),
+                        }),
+                    },
+                    TokenType::EqualEqual => {
+                        match (left.value.token_type, right.value.token_type) {
+                            (TokenType::Nil, TokenType::Nil) => Ok(VarValue::Literal(
+                                Literal::new(Token::new(TokenType::True, "true", left.value.line)),
+                            )),
+                            (TokenType::Nil, ..) | (.., TokenType::Nil) => {
+                                Ok(VarValue::Literal(Literal::new(Token::new(
+                                    TokenType::False,
+                                    "false",
+                                    left.value.line,
+                                ))))
+                            }
+                            (TokenType::True, token_type) | (token_type, TokenType::True) => {
+                                if Literal::is_truthy(&token_type) {
+                                    Ok(VarValue::Literal(Literal::new(Token::new(
+                                        TokenType::True,
+                                        "true",
+                                        left.value.line,
+                                    ))))
+                                } else {
+                                    Ok(VarValue::Literal(Literal::new(Token::new(
+                                        TokenType::False,
+                                        "false",
+                                        left.value.line,
+                                    ))))
+                                }
+                            }
+                            (TokenType::False, token_type) | (token_type, TokenType::False) => {
+                                if !Literal::is_truthy(&token_type) {
+                                    Ok(VarValue::Literal(Literal::new(Token::new(
+                                        TokenType::True,
+                                        "true",
+                                        left.value.line,
+                                    ))))
+                                } else {
+                                    Ok(VarValue::Literal(Literal::new(Token::new(
+                                        TokenType::False,
+                                        "false",
+                                        left.value.line,
+                                    ))))
+                                }
+                            }
+                            // match cases:
+                            // number -> number, number -> string
+                            (TokenType::Number(lval), TokenType::Number(rval)) => {
+                                let val = lval == rval;
+                                let value = if val {
+                                    TokenType::True
+                                } else {
+                                    TokenType::False
+                                };
+
+                                Ok(VarValue::Literal(Literal::new(Token::new(
+                                    value,
+                                    &val.to_string(),
+                                    left.value.line,
+                                ))))
+                            }
+
+                            (TokenType::String(lval), TokenType::String(rval)) => {
+                                let val = lval == rval;
+                                let value = if val {
+                                    TokenType::True
+                                } else {
+                                    TokenType::False
+                                };
+
+                                Ok(VarValue::Literal(Literal::new(Token::new(
+                                    value,
+                                    &val.to_string(),
+                                    left.value.line,
+                                ))))
+                            }
+
+                            (TokenType::Number(nval), TokenType::String(sval))
+                            | (TokenType::String(sval), TokenType::Number(nval)) => {
+                                let val = nval.to_string() == sval;
+                                let value = if val {
+                                    TokenType::True
+                                } else {
+                                    TokenType::False
+                                };
+
+                                Ok(VarValue::Literal(Literal::new(Token::new(
+                                    value,
+                                    &val.to_string(),
+                                    left.value.line,
+                                ))))
+                            }
+                            _ => {
+                                unreachable!()
+                            }
+                        }
                     }
-                }
-                // match cases:
-                // number -> number, number -> string
-                (TokenType::Number(lval), TokenType::Number(rval)) => {
-                    let val = lval == rval;
-                    let value = if val {
-                        TokenType::True
-                    } else {
-                        TokenType::False
-                    };
+                    TokenType::BangEqual => match (left.value.token_type, right.value.token_type) {
+                        (TokenType::Nil, TokenType::Nil) => Ok(VarValue::Literal(Literal::new(
+                            Token::new(TokenType::False, "false", left.value.line),
+                        ))),
+                        (TokenType::Nil, ..) | (.., TokenType::Nil) => Ok(VarValue::Literal(
+                            Literal::new(Token::new(TokenType::True, "true", left.value.line)),
+                        )),
+                        (TokenType::True, token_type) | (token_type, TokenType::True) => {
+                            if !Literal::is_truthy(&token_type) {
+                                Ok(VarValue::Literal(Literal::new(Token::new(
+                                    TokenType::True,
+                                    "true",
+                                    left.value.line,
+                                ))))
+                            } else {
+                                Ok(VarValue::Literal(Literal::new(Token::new(
+                                    TokenType::False,
+                                    "false",
+                                    left.value.line,
+                                ))))
+                            }
+                        }
+                        (TokenType::False, token_type) | (token_type, TokenType::False) => {
+                            if Literal::is_truthy(&token_type) {
+                                Ok(VarValue::Literal(Literal::new(Token::new(
+                                    TokenType::True,
+                                    "true",
+                                    left.value.line,
+                                ))))
+                            } else {
+                                Ok(VarValue::Literal(Literal::new(Token::new(
+                                    TokenType::False,
+                                    "false",
+                                    left.value.line,
+                                ))))
+                            }
+                        }
+                        // match cases:
+                        // number -> number, number -> string
+                        (TokenType::Number(lval), TokenType::Number(rval)) => {
+                            let val = lval != rval;
+                            let value = if val {
+                                TokenType::True
+                            } else {
+                                TokenType::False
+                            };
 
-                    Ok(Literal::new(Token::new(
-                        value,
-                        &val.to_string(),
-                        left.value.line,
-                    )))
-                }
+                            Ok(VarValue::Literal(Literal::new(Token::new(
+                                value,
+                                &val.to_string(),
+                                left.value.line,
+                            ))))
+                        }
 
-                (TokenType::String(lval), TokenType::String(rval)) => {
-                    let val = lval == rval;
-                    let value = if val {
-                        TokenType::True
-                    } else {
-                        TokenType::False
-                    };
+                        (TokenType::String(lval), TokenType::String(rval)) => {
+                            let val = lval != rval;
+                            let value = if val {
+                                TokenType::True
+                            } else {
+                                TokenType::False
+                            };
 
-                    Ok(Literal::new(Token::new(
-                        value,
-                        &val.to_string(),
-                        left.value.line,
-                    )))
-                }
+                            Ok(VarValue::Literal(Literal::new(Token::new(
+                                value,
+                                &val.to_string(),
+                                left.value.line,
+                            ))))
+                        }
 
-                (TokenType::Number(nval), TokenType::String(sval))
-                | (TokenType::String(sval), TokenType::Number(nval)) => {
-                    let val = nval.to_string() == sval;
-                    let value = if val {
-                        TokenType::True
-                    } else {
-                        TokenType::False
-                    };
+                        (TokenType::Number(nval), TokenType::String(sval))
+                        | (TokenType::String(sval), TokenType::Number(nval)) => {
+                            let val = nval.to_string() != sval;
+                            let value = if val {
+                                TokenType::True
+                            } else {
+                                TokenType::False
+                            };
 
-                    Ok(Literal::new(Token::new(
-                        value,
-                        &val.to_string(),
-                        left.value.line,
-                    )))
+                            Ok(VarValue::Literal(Literal::new(Token::new(
+                                value,
+                                &val.to_string(),
+                                left.value.line,
+                            ))))
+                        }
+                        _ => {
+                            unreachable!();
+                        }
+                    },
+                    _ => Err(RuloxError::RuntimeError {
+                        line: left.value.line,
+                        message: "Binary Operator not supported".to_string(),
+                    }),
                 }
-                // _ => Err(RuloxError::RuntimeError {
-                //     line: left.value.line,
-                //     message: "at '==' oprator This must not happen".to_string(),
-                // }),
-                _ => {
-                    unreachable!()
-                }
-            },
-            TokenType::BangEqual => match (left.value.token_type, right.value.token_type) {
-                (TokenType::Nil, TokenType::Nil) => Ok(Literal::new(Token::new(
-                    TokenType::False,
-                    "false",
-                    left.value.line,
-                ))),
-                (TokenType::Nil, ..) | (.., TokenType::Nil) => Ok(Literal::new(Token::new(
-                    TokenType::True,
-                    "true",
-                    left.value.line,
-                ))),
-                (TokenType::True, token_type) | (token_type, TokenType::True) => {
-                    if !Literal::is_truthy(&token_type) {
-                        Ok(Literal::new(Token::new(
-                            TokenType::True,
-                            "true",
-                            left.value.line,
-                        )))
-                    } else {
-                        Ok(Literal::new(Token::new(
-                            TokenType::False,
-                            "false",
-                            left.value.line,
-                        )))
-                    }
-                }
-                (TokenType::False, token_type) | (token_type, TokenType::False) => {
-                    if Literal::is_truthy(&token_type) {
-                        Ok(Literal::new(Token::new(
-                            TokenType::True,
-                            "true",
-                            left.value.line,
-                        )))
-                    } else {
-                        Ok(Literal::new(Token::new(
-                            TokenType::False,
-                            "false",
-                            left.value.line,
-                        )))
-                    }
-                }
-                // match cases:
-                // number -> number, number -> string
-                (TokenType::Number(lval), TokenType::Number(rval)) => {
-                    let val = lval != rval;
-                    let value = if val {
-                        TokenType::True
-                    } else {
-                        TokenType::False
-                    };
-
-                    Ok(Literal::new(Token::new(
-                        value,
-                        &val.to_string(),
-                        left.value.line,
-                    )))
-                }
-
-                (TokenType::String(lval), TokenType::String(rval)) => {
-                    let val = lval != rval;
-                    let value = if val {
-                        TokenType::True
-                    } else {
-                        TokenType::False
-                    };
-
-                    Ok(Literal::new(Token::new(
-                        value,
-                        &val.to_string(),
-                        left.value.line,
-                    )))
-                }
-
-                (TokenType::Number(nval), TokenType::String(sval))
-                | (TokenType::String(sval), TokenType::Number(nval)) => {
-                    let val = nval.to_string() != sval;
-                    let value = if val {
-                        TokenType::True
-                    } else {
-                        TokenType::False
-                    };
-
-                    Ok(Literal::new(Token::new(
-                        value,
-                        &val.to_string(),
-                        left.value.line,
-                    )))
-                }
-                // _ => Err(RuloxError::RuntimeError {
-                //     line: left.value.line,
-                //     message: "at '!=' oprator This must not happen".to_string(),
-                // }),
-                _ => {
-                    unreachable!();
-                }
-            },
-            _ => Err(RuloxError::RuntimeError {
-                line: left.value.line,
-                message: "Binary Operator not supported".to_string(),
-            }),
+            }
+            _ => {
+                unreachable!();
+            }
         }
     }
 

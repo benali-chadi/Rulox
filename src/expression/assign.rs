@@ -22,17 +22,16 @@ impl Assign {
 
 impl Display for Assign {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        // write!(f, "{}", parenthisize(&self.name.lexeme, &[&self.value]))
+        //* write!(f, "{}", parenthisize(&self.name.lexeme, &[&self.value]))
         write!(f, "{}", self.value)
     }
 }
 
 impl ExprTrait for Assign {
-    fn execute(&self, env: Rc<RefCell<Environment>>) -> RuloxResult<super::Literal> {
+    fn execute(&self, env: Rc<RefCell<Environment>>) -> RuloxResult<VarValue> {
         let value = self.value.execute(Rc::clone(&env))?;
 
-        env.borrow_mut()
-            .assign(&self.name, &VarValue::Literal(value.clone()))?;
+        env.borrow_mut().assign(&self.name, &value)?;
 
         Ok(value)
     }

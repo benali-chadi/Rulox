@@ -16,7 +16,7 @@ async fn handle_signals(mut signals: Signals) {
             SIGINT => {
                 println!("\nto quit press Ctrl-d or type 'quit'");
             }
-            // SIGQUIT => { }
+            //* SIGQUIT => { }
             _ => {
                 unreachable!()
             }

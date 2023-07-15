@@ -33,7 +33,7 @@ impl Rulox {
     pub fn run(&mut self) -> RuloxResult<()> {
         let mut scanner = Scanner::new(&self.source);
         let tokens = scanner.scan_tokens()?;
-        // for token in &tokens {
+        //* for token in &tokens {
         //     println!("{token:?}");
         // }
 
@@ -46,7 +46,7 @@ impl Rulox {
     pub fn prompt_run(&mut self, input: String) -> RuloxResult<()> {
         let mut scanner = Scanner::new(&input);
         let tokens = scanner.scan_tokens()?;
-        // for token in &tokens {
+        //* for token in &tokens {
         //     println!("{token:?}");
         // }
 

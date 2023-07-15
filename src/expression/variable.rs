@@ -26,21 +26,22 @@ impl Display for Variable {
 }
 
 impl ExprTrait for Variable {
-    fn execute(&self, env: Rc<RefCell<Environment>>) -> RuloxResult<Literal> {
-        match env.borrow().get(&self.name) {
-            Ok(value) => match value {
-                VarValue::Literal(val) => Ok(val),
-
-                VarValue::Callable(_) => Ok(Literal {
-                    value: Token::new(
-                        TokenType::String(self.name.lexeme.to_string()),
-                        &self.name.lexeme,
-                        1,
-                    ),
-                }),
-            },
-            Err(err) => Err(err),
-        }
+    fn execute(&self, env: Rc<RefCell<Environment>>) -> RuloxResult<VarValue> {
+        // match env.borrow().get(&self.name) {
+        //     Ok(value) => match value {
+        //         VarValue::Literal(val) => Ok(val),
+        //
+        //         VarValue::Callable(_) => Ok(Literal {
+        //             value: Token::new(
+        //                 TokenType::String(self.name.lexeme.to_string()),
+        //                 &self.name.lexeme,
+        //                 1,
+        //             ),
+        //         }),
+        //     },
+        //     Err(err) => Err(err),
+        // }
+        env.borrow().get(&self.name)
     }
 
     fn get_token(&self) -> &Token {

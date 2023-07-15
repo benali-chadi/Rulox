@@ -2,7 +2,7 @@ use crate::{
     expression::{Assign, Logical, Variable, *},
     rulox_error::{Report, RuloxError, RuloxResult},
     scanner::token::{Token, TokenType},
-    statement::{Block, Expression, Function, If, Print, Stmt, Var, While},
+    statement::{Block, Expression, Function, If, Print, Return, Stmt, Var, While},
 };
 
 pub struct Parser {
@@ -44,9 +44,6 @@ impl Parser {
     }
 
     fn declaration(&mut self) -> RuloxResult<Stmt> {
-        // if self.matches(&[TokenType::Var]) {
-        // }
-
         match self.peek().token_type {
             TokenType::Fun => {
                 self.advance();
@@ -95,7 +92,6 @@ impl Parser {
                 }
             }
         }
-        // self.advance();
         self.consume(TokenType::RightParen, "Expect ')' after parameters.")?;
 
         self.consume(
@@ -142,6 +138,11 @@ impl Parser {
                 self.advance();
                 self.print_statement()
             }
+            TokenType::Return => {
+                let keyword = self.advance();
+                // let keyword = self.previous();
+                self.return_statement(&keyword)
+            }
             TokenType::While => {
                 self.advance();
                 self.while_statement()
@@ -154,12 +155,22 @@ impl Parser {
         }
     }
 
+    fn return_statement(&mut self, keyword: &Token) -> RuloxResult<Stmt> {
+        let mut value: Option<Expr> = None;
+
+        if !self.check(&TokenType::Semicolon) {
+            value = Some(self.expression()?);
+        }
+
+        self.consume(TokenType::Semicolon, "Expect ';' after return value.")?;
+        Ok(Stmt::new(Box::new(Return::new(keyword, value))))
+    }
+
     fn for_statement(&mut self) -> RuloxResult<Stmt> {
         self.consume(TokenType::LeftParen, "Expect '(' after 'for'.")?;
 
         let mut _initializer: Option<Stmt> = None;
 
-        // if self.matches(&[TokenType::Semicolon]) {}
         if self.matches(&[TokenType::Var]) {
             _initializer = Some(self.var_declaration()?);
         } else {
@@ -267,11 +278,10 @@ impl Parser {
     }
 
     fn assignment(&mut self) -> RuloxResult<Expr> {
-        // let expr = self.equality()?;
         let expr = self.or()?;
 
         if self.matches(&[TokenType::Equal]) {
-            // let equals = self.previous();
+            //* let equals = self.previous();
             let value = self.assignment()?;
 
             // Check if the expression is a Variable, by checking if its token_type is an identifier
@@ -380,7 +390,6 @@ impl Parser {
             return Ok(Expr::new(Box::new(Unary::new(operator, right))));
         }
 
-        // self.primary()
         self.call()
     }
 

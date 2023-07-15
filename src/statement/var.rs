@@ -38,9 +38,7 @@ impl StmtTrait for Var {
         match &self.initializer {
             Some(expr) => {
                 let value = expr.execute(Rc::clone(&env))?;
-                // env.borrow_mut().define(&self.name.lexeme, value);
-                env.borrow_mut()
-                    .define(&self.name.lexeme, VarValue::Literal(value));
+                env.borrow_mut().define(&self.name.lexeme, value);
                 Ok(())
             }
             None => {

@@ -4,7 +4,7 @@ use crate::{
     expression::utils,
     rulox_error::{RuloxError, RuloxResult},
     scanner::token::{Token, TokenType},
-    statement::Environment,
+    statement::{Environment, VarValue},
 };
 
 use super::{Expr, ExprTrait, Literal};
@@ -32,39 +32,43 @@ impl Display for Unary {
 }
 
 impl ExprTrait for Unary {
-    fn execute(&self, env: Rc<RefCell<Environment>>) -> RuloxResult<Literal> {
+    fn execute(&self, env: Rc<RefCell<Environment>>) -> RuloxResult<VarValue> {
         let literal = self.right.execute(Rc::clone(&env))?;
 
-        match self.operator.token_type {
-            TokenType::Minus => match literal.value.token_type {
-                TokenType::Number(val) => Ok(Literal::new(Token::new(
-                    TokenType::Number(-val),
-                    &(-val).to_string(),
-                    literal.value.line,
-                ))),
+        match literal {
+            VarValue::Literal(literal) => match self.operator.token_type {
+                TokenType::Minus => match literal.value.token_type {
+                    TokenType::Number(val) => Ok(VarValue::Literal(Literal::new(Token::new(
+                        TokenType::Number(-val),
+                        &(-val).to_string(),
+                        literal.value.line,
+                    )))),
+                    _ => Err(RuloxError::RuntimeError {
+                        line: literal.value.line,
+                        message: "Operand must be a number".to_string(),
+                    }),
+                },
+                TokenType::Bang => {
+                    if Literal::is_truthy(&literal.value.token_type) {
+                        return Ok(VarValue::Literal(Literal::new(Token::new(
+                            TokenType::False,
+                            "false",
+                            literal.value.line,
+                        ))));
+                    }
+                    Ok(VarValue::Literal(Literal::new(Token::new(
+                        TokenType::True,
+                        "true",
+                        literal.value.line,
+                    ))))
+                }
                 _ => Err(RuloxError::RuntimeError {
                     line: literal.value.line,
-                    message: "Operand must be a number".to_string(),
+                    message: "unary operator not supported".to_string(),
                 }),
             },
-            TokenType::Bang => {
-                if Literal::is_truthy(&literal.value.token_type) {
-                    return Ok(Literal::new(Token::new(
-                        TokenType::False,
-                        "false",
-                        literal.value.line,
-                    )));
-                }
-                Ok(Literal::new(Token::new(
-                    TokenType::True,
-                    "true",
-                    literal.value.line,
-                )))
-            }
-            _ => Err(RuloxError::RuntimeError {
-                line: literal.value.line,
-                message: "unary operator not supported".to_string(),
-            }),
+
+            _ => unreachable!(),
         }
     }
 

@@ -33,7 +33,6 @@ impl StmtTrait for Function {
             &self.name.lexeme,
             super::VarValue::Callable(Rc::new(RefCell::new(self.clone()))),
         );
-
         Ok(())
     }
 }
@@ -53,9 +52,7 @@ impl RuloxCallableTrait for Function {
                 }
             };
 
-            current_env
-                .borrow_mut()
-                .define(&value.lexeme, VarValue::Literal(val));
+            current_env.borrow_mut().define(&value.lexeme, val);
         }
 
         self.body.execute(Rc::clone(&current_env))?;

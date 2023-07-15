@@ -9,7 +9,11 @@ pub use logical::Logical;
 pub use unary::Unary;
 pub use variable::Variable;
 
-use crate::{rulox_error::RuloxResult, scanner::token::Token, statement::Environment};
+use crate::{
+    rulox_error::RuloxResult,
+    scanner::token::Token,
+    statement::{Environment, VarValue},
+};
 mod assign;
 mod binary;
 mod call;
@@ -21,7 +25,7 @@ mod utils;
 mod variable;
 
 pub trait ExprTrait: Display + ExprClone {
-    fn execute(&self, env: Rc<RefCell<Environment>>) -> RuloxResult<Literal>;
+    fn execute(&self, env: Rc<RefCell<Environment>>) -> RuloxResult<VarValue>;
     fn get_token(&self) -> &Token;
 }
 
@@ -53,7 +57,7 @@ impl Expr {
     pub fn new(expression: Box<dyn ExprTrait>) -> Self {
         Self { expression }
     }
-    pub fn execute(&self, env: Rc<RefCell<Environment>>) -> RuloxResult<Literal> {
+    pub fn execute(&self, env: Rc<RefCell<Environment>>) -> RuloxResult<VarValue> {
         self.expression.execute(Rc::clone(&env))
     }
 }

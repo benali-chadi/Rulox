@@ -4,7 +4,7 @@ use crate::{
     expression::utils,
     rulox_error::RuloxResult,
     scanner::token::{Token, TokenType},
-    statement::Environment,
+    statement::{Environment, VarValue},
 };
 
 use super::{Expr, ExprTrait, Literal};
@@ -37,21 +37,26 @@ impl Display for Logical {
 }
 
 impl ExprTrait for Logical {
-    fn execute(&self, env: Rc<RefCell<Environment>>) -> RuloxResult<super::Literal> {
+    fn execute(&self, env: Rc<RefCell<Environment>>) -> RuloxResult<VarValue> {
         let left = self.left.execute(Rc::clone(&env))?;
 
-        match self.operator.token_type {
-            TokenType::Or => {
-                if Literal::is_truthy(&left.value.token_type) {
-                    return Ok(left);
+        match &left {
+            VarValue::Literal(val) => {
+                match self.operator.token_type {
+                    TokenType::Or => {
+                        if Literal::is_truthy(&val.value.token_type) {
+                            return Ok(left);
+                        }
+                    }
+                    // Then its And
+                    _ => {
+                        if !Literal::is_truthy(&val.value.token_type) {
+                            return Ok(left);
+                        }
+                    }
                 }
             }
-            // Then its And
-            _ => {
-                if !Literal::is_truthy(&left.value.token_type) {
-                    return Ok(left);
-                }
-            }
+            _ => unreachable!(),
         }
 
         self.right.execute(Rc::clone(&env))

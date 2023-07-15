@@ -32,11 +32,22 @@ impl Display for If {
 
 impl StmtTrait for If {
     fn execute(&self, env: Rc<RefCell<Environment>>) -> RuloxResult<()> {
-        if Literal::is_truthy(&self.condition.execute(Rc::clone(&env))?.value.token_type) {
-            return self.then_branch.execute(Rc::clone(&env));
-        } else if let Some(statement) = &self.else_branch {
-            return statement.execute(Rc::clone(&env));
+        match self.condition.execute(Rc::clone(&env))? {
+            super::VarValue::Literal(val) => {
+                if Literal::is_truthy(&val.value.token_type) {
+                    return self.then_branch.execute(Rc::clone(&env));
+                } else if let Some(statement) = &self.else_branch {
+                    return statement.execute(Rc::clone(&env));
+                }
+            }
+            super::VarValue::Callable(_) => todo!(),
         }
+
+        // if Literal::is_truthy(&self.condition.execute(Rc::clone(&env))?.value.token_type) {
+        //     return self.then_branch.execute(Rc::clone(&env));
+        // } else if let Some(statement) = &self.else_branch {
+        //     return statement.execute(Rc::clone(&env));
+        // }
 
         Ok(())
     }

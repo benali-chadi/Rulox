@@ -3,7 +3,7 @@ use std::{cell::RefCell, fmt::Display, rc::Rc};
 use crate::{
     rulox_error::RuloxResult,
     scanner::token::{Token, TokenType},
-    statement::Environment,
+    statement::{Environment, VarValue},
 };
 
 use super::ExprTrait;
@@ -13,7 +13,6 @@ pub struct Literal {
     pub value: Token,
 }
 
-// Add true and false
 impl Literal {
     pub fn new(value: Token) -> Self {
         let value = match value.token_type {
@@ -44,8 +43,8 @@ impl Display for Literal {
 }
 
 impl ExprTrait for Literal {
-    fn execute(&self, _env: Rc<RefCell<Environment>>) -> RuloxResult<Literal> {
-        Ok(self.clone())
+    fn execute(&self, _env: Rc<RefCell<Environment>>) -> RuloxResult<VarValue> {
+        Ok(VarValue::Literal(self.clone()))
     }
 
     fn get_token(&self) -> &Token {

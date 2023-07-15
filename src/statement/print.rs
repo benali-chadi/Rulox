@@ -23,8 +23,8 @@ impl Display for Print {
 
 impl StmtTrait for Print {
     fn execute(&self, env: Rc<RefCell<Environment>>) -> RuloxResult<()> {
-        let literal = self.expression.execute(Rc::clone(&env))?;
-        println!("{}", literal);
+        let var_value = self.expression.execute(Rc::clone(&env))?;
+        println!("{}", var_value);
         Ok(())
     }
 }

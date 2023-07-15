@@ -81,11 +81,11 @@ fn error(line: usize, message: String, err_type: String) {
     report(line, message, err_type, 0);
 }
 
-// fn warn(line: usize, message: String) {
+//* fn warn(line: usize, message: String) {
 //     report(line, message, 1);
 // }
 //
-// fn info(message: String) {
+//* fn info(message: String) {
 //     report(0, message, 2);
 // }
 
